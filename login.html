@@ -1,0 +1,159 @@
+﻿## 0_setup/user/default.html
+##<%include file="base.html" />
+<%inherit file="base.html" />
+##<body>
+##<% url = cherrypy.request.wsgi_environ['PATH_INFO'] %>
+##path_info: {cherrypy.request.wsgi_environ['PATH_INFO']}
+
+## {parent.body()}
+
+##</body>
+
+<%block name="body1">
+<body>
+<%block name="js_func">
+    <script language="javascript">
+	function fmtTh(val, row) {
+	    return '<span class="tdth" style="width:\'100%\';font-weight:bold;">'+val+'</span>';
+	};
+	$.messager.show({title:'消息',
+		msg:'${msg}',
+		timeout: 0
+		});
+    </script>
+</%block>
+
+<%include file="menu.html" />
+<div style="text-align:center;margin-bottom:10px;padding:40px 10px 10px 10px">
+    <form name="login_form" id="login_form" class="easyui-form" method="post" data-options="novalidate:false" action="">
+	<div style="margin-bottom:20px">
+	<input name="phone" id="phone" class="easyui-textbox" label="手机号码" style="width:300px;height:40px;padding:12px" data-options="prompt:'手机号码',BBiconCls:'icon-man',iconWidth:38,required:true,buttonText:'发送验证码',buttonIcon:'icon-man', onClickButton:sendMsg
+	" validType="length[11,11]" prompt="手机号码长度为11位数字" invalidMessage="为保持登陆唯一，本系统采用手机号码作为用户名" missingMessage="手机号码必须输入"
+	    %if 'user' in _sess:
+	    value = "${_sess['user']['phone']}" readonly
+	    %else:  #if _sess['state']=='offline':
+	    value = "${_sess.get('phone','')}"
+	    %endif
+	    >
+	</div>
+<script type="text/javascript">
+    //$('input',$('#phone').next('span')).click(function() {alert('xi')});
+    var interValObj;	// timer变量，控制时间
+    var count = 5;
+    var curCount;   //当前剩余秒数
+    var inp;
+    function sendMsg() {    //发送验证码
+	var btn = $(this).textbox('button');
+	val = $(this).textbox('isValid');
+	if(!val) {
+	    btn.linkbutton({text:'请输入正确的手机号码'});
+	    return;
+	    };
+	console.log('val', val);
+	console.log('start');
+	curCount = count;
+	//console.log('btn', btn);
+	$(this).textbox('readonly');
+	inp = $(this);
+	btn.linkbutton({text:curCount+'秒后可重发验证码'});
+	interValObj = window.setInterval("setRemainTime(inp)", 1000);
+	console.log('end');
+	$.ajax({
+	    async:true,
+	    type:"post",
+	    dataType: "json",
+	    url: "/SendMsg",
+	    timeout: 30000,
+	    data: "phone="+$('#phone').textbox('getValue'),
+	    success:function(result) {
+		console.log(result);
+		if(!result.success) {
+		    window.clearInterval(interValObj);
+		    btn.linkbutton({text:'发送验证码'});
+		    inp.textbox('readonly',false);
+		}
+		$.messager.show({title:'消息', msg:result['msg'], timeout: 0 });
+	    },
+	    error:function(XMLHttpRequest, textStatus, errorThrown) {
+		alert('未知错误，请查看控制台');
+		console.log(textStatus, errorThrown, XMLHttpRequest);
+		window.clearInterval(interValObj);	//停止计时器
+		inp.textbox('readonly',false);
+		inp.textbox('button').linkbutton({text:'请重新发送验证码'});
+	    }
+	});
+    };	
+    function setRemainTime(inp) {	//定时器
+	//console.log('curCount', curCount,inp, this);
+	if(curCount==0)	{
+	    //console.log('curCount==0', curCount);
+	    window.clearInterval(interValObj);	//停止计时器
+	    inp.textbox('readonly',false);
+	    inp.textbox('button').linkbutton({text:'请重新发送验证码'});
+	}
+	else {
+	    //console.log('curCount--else', curCount);
+	    curCount --;
+	    inp.textbox('button').linkbutton({text:'请在' + curCount+'秒内输入验证码'});
+	}
+    };
+</script>
+	<!--
+	<div style="margin-bottom:20px"> <input name="password" id="password" label="密码"
+	class="easyui-textbox" type="password" style="width:300px;height:40px;padding:12px" data-options="prompt:'密码码为8-20位，由用户在注册时设定',iconCls:'icon-lock',iconWidth:38" validType="length[6,20]" invalidMessage="密码为8-20位，必须包含字母、数字、特殊符号三种元素" missingMessage="登录时必须输入正确的密码" >
+	</div>
+	-->
+    % if 'user' not in _sess:
+	<div style="margin-bottom:20px"> <input name="valicode" id="valicode" label="验证码"
+	class="easyui-textbox" style="width:300px;height:40px;padding:12px" data-options="prompt:'验证码为6位数字，由系统随机产生并发送.',iconCls:'icon-lock',iconWidth:38,required:true" validType="length[6,6]" invalidMessage="验证码为6位数字" missingMessage="请先点击上面“发送验证码”按钮" >
+	</div>
+    % endif
+	<input type="hidden" name="sub" value="init sub" />
+</form>
+</div>
+${nofind}
+<div style="text-align:center;margin-bottom:10px;padding:10px 10px 10px 10px">
+    % if 'user' not in _sess:
+    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" style="width:150px;padding:5px 0px" onclick="$('#password').textbox({'required':true});if($('#login_form').form('validate')) { document.login_form.sub.value='登录';document.login_form.submit();}" title="汉字算1个字符长度"><span style="font-size:14px">登录</span></a>
+    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" style="width:150px;padding:5px 0px" onclick="$('#login_form').form('clear');" title="清除输入内容"> <span style="font-size:14px;">复位</span> </a>
+    % else: 
+    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" style="width:150px;padding:5px 0px" onclick="$('#password').textbox({'required':false});$('#phone').textbox({'required':false});document.login_form.sub.value='退出登录'; document.login_form.submit();" title="汉字算1个字符长度"><span style="font-size:14px">退出登录</span></a>
+    <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" disabled style="width:150px;padding:5px 0px" onclick="$('#password').textbox({'required':true}); if($('#login_form').form('validate')) {document.login_form.sub.value='修改密码'; document.login_form.submit()};" title="注意在上面的密码输入框填写新的密码"> <span style="font-size:14px;">修改密码</span> </a>
+    <div style="padding:10px"></div>
+
+<div class="easyui-accordion" style="width:'100%';height:'100%';">
+<div style="padding:10px;width:100%" title="个人信息及认证情况" iconCls="icon-man">
+    <table class="easyui-datagrid" data-options="selected:false,width:'100%',pagination:true,fitColumns:true,pagination:false,showHeader:false,fitColumns:true, multiSelect:false" style="padding: 10px 10px 10px 10px;">
+        <thead> <tr>
+                <th data-options="field:'a',formatter:fmtTh">a</th>
+                <th field="b">b</th>
+                <th data-options="field:'c',formatter:fmtTh">c</th>
+                <th field="d">d</th>
+                <th data-options="field:'e',formatter:fmtTh">e</th>
+                <th field="f">f</th>
+            </tr>
+        </thead> <tbody>
+            <tr><td>用户名</td><td>${_sess['user']['name']}</td>
+                <td>用户序号</td><td>${user['id']}(可用于快速登录)</td>
+                <td>手机号码</td><td>${user['phone']}</td>
+            </tr>
+            <tr><td>登录时间</td><td>${user['login_time']}</td>
+                <td>登录IP</td><td>${user['ip']}</td>
+                <td>session_id</td><td>${user['session_id']}</td></tr>
+            <tr><td>注册时间</td><td>${user['reg_time']}</td>
+                <td>注册IP</td><td>${user['ip']}</td>
+                <td>注册浏览器信息</td><td>${user['reg_ie']}</td></tr>
+            <tr><td>组织</td><td>${user['org']}</td>
+                <td>邮箱</td><td>${user['email']}</td>
+                <td>注册浏览器信息</td><td>${user['reg_ie']}</td></tr>
+        </tbody>
+</table></div>
+
+</div>
+</div>
+    % endif
+##</div>
+</div>
+</body>
+</%block>
+
