@@ -1,0 +1,59 @@
+﻿## 0_setup/index.html
+<%inherit file="log.html" />
+
+##${parent.body()}
+
+<%block name="js">
+<script type="text/javascript">
+    function esc_str(str,row,index) {
+	str2 = str.substring(0,200).replace(/%/g,"&amp;").replace(/ /g, "&nbsp;").replace(/</g, "&lt;").replace(/\n/g, "<br>");
+	return str2;
+    }
+    $(function(){
+	$('#dg').datagrid({
+	    url:'select?_table=${_table}'
+	    //,onLoadSuccess:function () {
+	      //  $.mobile.go('#p0');
+		//}
+	});
+    });
+</script>
+</%block>
+
+<%block name="mright_edit">
+    <div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('addRow')">增加</div>
+    <div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('destroyRow')">删除</div>
+    <div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('saveRow')">保存</div>
+    <div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('cancelRow')">取消</div>
+</%block>
+
+<%block name="toolsearch">
+<div style="float:right;padding:0px">
+    <script language="javascript">
+	var person = {
+	    search: function(value, kind) {
+		var kw = {};
+		kw[kind] = value;
+		var month = $('#acct_month').combobox('getValue');
+		if (month != "选择月份") {
+		    kw['acct_month'] = month;
+		}
+		$('#dg').datagrid("load", kw);
+	    }
+	}
+    </script>
+	月份:
+	<select id="acct_month" name="acct_month" class="easyui-combobox" panelHeight="auto" style="width:100px">
+	    <option value="选择月份">选择月份</option>
+	    <option value="202108">202108</option>
+	    <option value="202107">202107</option>
+	    <option value="202106">202106</option>
+	</select>
+	<input id="search" class="easyui-searchbox" value="" style="width:250px;" prompt='根据字段模糊查询' searcher="person.search" menu="#mm" data-options="icons:[{iconCls:'icon-clear', handler: function(e) {$(e.data.target).searchbox('clear'); $('#dg').datagrid('load', {});} }]">
+	<div id="mm">
+	    % for col in table_class['desc'][:9]:
+	        <div data-options="kind: '${col[0]}'">${col[0]}</div>
+	    %endfor
+	</div>
+</div>
+</%block>
