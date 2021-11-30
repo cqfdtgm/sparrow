@@ -46,32 +46,6 @@ class default(parent_default):
             self.db.update(self.table, parentid, state='open')
         return {'success': True}
 
-        return #    直接返回会停止删除？
-        for r in self.db.select(self.table, parentid=id):
-            default.delete(r['id'], 1)  # 递归删除下级时，depth为1
-        self.db.delete(self.table, id)
-        if not depth:   # 非递归删除下级时，才更新父记录的state字段
-            parentid = self.db.select(self.table, id=id)['rows'][0]['id']
-            if not self.db.count(self.table, parentid=parentid):
-                self.db.update(self.table, parentid, state='open')
-        table = self.dct['table']
-        rec = self.db.select(table, id=id)['rows'][0]
-        print('debug: delete:', table, id, rec)
-        parentid = rec['parentid']
-        # if rec['state'] == 'closed': # 如果有下级，不允许删除？
-        #    return
-        result = self.db.delete(self.dct['table'], id)
-        if result:  
-            # 要将本节点作为上级的全部子节点全部删除！
-            recs = self.db.select(table, path=rec['path']+'.'+str(id)+'%')
-            for rec in recs['rows']:
-                self.db.delete(table, rec['id'])
-            # 如果删除成功，则要考察父节点下面是否还有子节点，以更改状态
-            par_rec = self.db.select(table, parentid=parentid)
-            if not len(par_rec['rows']):
-                self.db.update(table, parentid, state='open')
-        return result
-
     def dnd(self, **kw):
         kw.setdefault('max_children', self.MAX_CHILDREN)
         return super(default, self).dnd(**kw)
@@ -91,6 +65,7 @@ class default(parent_default):
         if self.db.count(self.table, parentid=par) >= self.MAX_CHILDREN:    # 下级数量限制
             return {'isError': True, 'title': 'error', 'msg': '下级数量超出限制'}
         kw['display'] = self.db.max(self.table, 'display', parentid=par) + 1
+        kw['text'] = 'New Item'
         if par > 0:     # 不是顶级目录，父记录的状态要置为可打开。
             self.db.update(self.table, par, state='closed')
         return super(default, self).insert(**kw)
