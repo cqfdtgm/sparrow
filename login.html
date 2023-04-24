@@ -62,7 +62,7 @@
 	    async:true,
 	    type:"post",
 	    dataType: "json",
-	    url: "/SendMsg",
+	    url: "/sendmsg",
 	    timeout: 30000,
 	    data: "phone="+$('#phone').textbox('getValue'),
 	    success:function(result) {
@@ -75,7 +75,12 @@
 		$.messager.show({title:'消息', msg:result['msg'], timeout: 0 });
 	    },
 	    error:function(XMLHttpRequest, textStatus, errorThrown) {
+	    $.messager.show({title:'错误', msg:XMLHttpRequest.responseText});
 		alert('未知错误，请查看控制台');
+		console.log('textStatus', textStatus);
+		console.log('XMLHttpRequest', XMLHttpRequest);
+		console.log('RequestTxt', XMLHttpRequest.responseText);
+		console.log('errorThrown', errorThrown);
 		console.log(textStatus, errorThrown, XMLHttpRequest);
 		window.clearInterval(interValObj);	//停止计时器
 		inp.textbox('readonly',false);
