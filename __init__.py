@@ -2,62 +2,91 @@ import cherrypy
 import json
 import mako.runtime
 import os
+import os.path
+# import pytest
 import sys
+# import threading
 
 from mako.lookup import TemplateLookup
+# from cherrypy.test import helper
 
-import sparrows
-import tools
+from . import dbapi
+from . import private
+from . import sparrows
+from . import tools
 
 mako.runtime.UNDEFINED = 'UNDEFINED'
 
 name = 'homepage'
 
 
+# noinspection PyPep8Naming
 class default(object):
     exposed = True
-    file_ = __file__
-    dirs_ = [os.path.dirname(__file__)]
-    table_ = 'users'
+    file = __file__
+    dirs = [os.path.dirname(__file__)]
+    table = 'users'
 
-    json_methods_ = ['select', 'update', 'delete', 'insert', 'tree', 'pop',
-                     'directory', 'dnd']
-    template_methods_ = ['default', 'login', 'log', 'users', 'debug', 'edit']
-    setup_methods_ = ['_test', '_src']
+    json_methods = ['select', 'update', 'delete', 'insert', 'tree', 'pop',
+                    'directory', 'dnd']     # 返回json数据的方法列表，基本都是取自数据库
+    # 返回模板内容的方法列表，目录下有同名的html文件
+    template_methods = ['default', 'login', 'log', 'users', 'debug', 'edit']
+    setup_methods = ['_test', '_src']       # 系统方法，原样返回
+    # db_type, connect_str = private.conn_sqlite_1
+    db_type, connect_str = private.conn_pg15
 
     def __del__(self):
+        # if 'db' in self.__dict__:
+        #    self.db.commit()
         pass
 
     def __init__(self, *k, **kw):
-        # for multivalues of a varible 'var', cherrypy will change name to 'var[]'
+        # for multivalues of a variable 'var', cherrypy will change name to 'var[]'
         for key in list(kw.keys()):
             if key.endswith('[]'):
                 kw[key[:-2]] = kw.pop(key)
-        self._k, self._kw = k, kw
-        self._dic = sparrows.dct.copy()
-        self._dic['sparrow'] = sparrows
-        self._dic['_sess'] = self._sess = sparrows.Session()
+        self.k, self.kw = k, kw
+        self.dct = sparrows.dct.copy()
+        self.dct['table'] = self.table = kw.pop('table', self.table)
+        self.dct['table_class'] = getattr(self.db, self.dct['table'])
+        self.dct['sparrow'] = sparrows
+        self.dct['_sess'] = self.sess = sparrows.Session()
 
     def __iter__(self):
-        if not self._k:
+        print('k,kw @ __iter__', self.k, self.kw)
+        if not self.k:
             url = cherrypy.request.wsgi_environ['PATH_INFO']
             if not url.endswith('/'):
                 raise cherrypy.HTTPRedirect(url + '/')
-            self._k = (self.__class__.__name__.split('.')[-1], )
-        func: str = self._k[0].lower()
-        result = getattr(self, func)(*self._k[1:], **self._kw)
+            self.k = (self.__class__.__name__.split('.')[-1],)
+        func = self.k[0].lower()        # 方法统一转为小写
         cherrypy.response.headers['Content-Type'] = 'text/html; charset=utf8'
-        if func in self.json_methods_:
+        if func in self.json_methods:
+            result = getattr(self, func)(*self.k[1:], **self.kw)
             cherrypy.response.headers['Cache-Control'] = 'no-cache'
             cherrypy.response.headers['Expires'] = '0'
             yield json.dumps(result, default=tools.decimal_default)
-        elif func in self.template_methods_:
-            yield TemplateLookup(self.dirs_).get_template(func + '.html').render(**self._dic)
-        elif func in self.setup_methods_:
+        elif func in self.template_methods:
+            yield TemplateLookup(self.dirs).get_template(func + '.html').render(**self.dct)
+        elif func in self.setup_methods:
+            result = getattr(self, func)(*self.k[1:], **self.kw)
             yield from result
 
-    def default(self):
-        pass
+    @property
+    def db(self):
+        # 用property的方式实现在访问self.db时，才初始化数据库，部分实现惰性连接
+        if 'db' not in self.__dict__:
+            self.__dict__['db'] = dbapi.init(self.db_type, self.connect_str)
+        return self.__dict__['db']
+
+    @staticmethod
+    def _src(path=__file__):
+        """显示某个文件的源内容，要保留格式。 """
+
+        path = os.sep.join([os.path.dirname(os.path.abspath(__file__)), path])
+        s = open(path, "rb").read().decode()
+        s = s.replace('<', '&lt;').replace('\t', ' ' * 4)   # 要用于HTML展示的话，小于符号先转义
+        yield '<pre>%s</pre>' % s
 
     def directory(self):
         """
@@ -69,31 +98,130 @@ class default(object):
             return self.__class__.directory_
         result, tree_dic = [], {}
         for root, dirs, files in os.walk(os.path.dirname(os.path.abspath(__file__)), True):
-            packge = '.'.join(root.split(os.path.sep)[1:])
+            package = '.'.join(root.split(os.path.sep)[1:])
             if '__init__.py' not in files:
                 del dirs[:]
                 continue
             mod = sys.modules['.'.join(root.split(os.sep)[1:])]
-            dic = tree_dic[packge] = dict(children=[], text=getattr(mod, 'name', os.path.basename(root)))
+            dic = tree_dic[package] = dict(children=[], text=getattr(mod, 'name', os.path.basename(root)))
             if root == os.path.dirname(os.path.abspath(__file__)):
                 dic['id'] = 1
                 dic['url'] = '/login'
                 result.append(dic)
-                tree_dic['packge'] = result[0]
+                tree_dic['package'] = result[0]
                 continue
             parent = tree_dic['.'.join(root.split(os.path.sep)[1:-1])]
-            dic['id'] = parent['id']*10 + len(parent['children']) + 1
+            dic['id'] = parent['id'] * 10 + len(parent['children']) + 1
             dic['url'] = '/' + '/'.join(root.split(os.sep)[2:]) + '/'
             parent['children'].append(dic)
             if parent['id'] != 1:
                 parent['state'] = 'open'
-            cherrypy.response.headers['Content-Type'] = 'text/json'
-            setattr(self.__class__, 'directory_', result)
-            return result
+        cherrypy.response.headers['Content-Type'] = 'text/json'
+        setattr(self.__class__, 'directory_', result)
+        return result
 
-    def login(self):
-        pass
+    def delete(self, id):
+        self.db.delete(self.dct['table'], id)
+        return dict(success=True)
+
+    def dnd(self, id="", targetId="", point="", max_children=3):
+        """
+        将树形结构下的一个整体结点，拖动到另一个节点下面
+            id: 被移动的节点ID
+            targetId: 目标节点
+            point: 在目标节点的布放方式， append: 追加作为其第一子节点，bottom: 同级，在其后插入；top:同级，在其前插入
+        在tree类表考虑包含path, level字段的情况下，dnd方法相对较复杂。可以从简单入手。
+        """
+
+        parentId = targetId if point == 'append' else self.db.select(self.table, id=targetId)['rows'][0]['parentid']
+        rec_old = self.db.select(self.table, id=id)['rows'][0]     # 保存原记录的字段值
+        if self.db.count(self.table, parentid=parentId) >= max_children and rec_old['parentid'] != parentId:
+            return {'isError': True, 'msg': "目标节点下级数量已达限制", 'success': False}
+        if point == "append":
+            display = self.db.max(self.table, 'display', parentid=targetId) + 1
+        else:
+            target = self.db.select(self.table, id=targetId)['rows'][0]
+            for r in self.db.select(self.table, parentid=target['parentid'], display=['>', target['display']])['rows']:
+                # display字段有个隐含BUG: 不停地向上加，时间久远后，有可能某天该字段整数上溢...
+                self.db.update(self.table, r['id'], display=r['display'] + 1)
+            if point == 'top':  # 搬动目标节点的后续节点后，如果是前插，目标节点的显示顺序也要加1
+                display = target['display']
+                self.db.update(self.table, targetId, display=target['display'] + 1)
+            else:
+                display = target['display'] + 1
+            targetId = target['parentid']   # 如果不是追加，父节点其实是目标节点的父节点
+        self.db.update(self.table, targetId, state='closed')  # 父节点设置为可展开状态。
+        self.db.update(self.table, id, parentid=targetId, display=display)
+        sons = self.db.count(self.table, parentid=rec_old['parentid'])  # 原父节点如果没有后继了，设置为不可展开状态(open)
+        if not sons:
+            self.db.update(self.table, rec_old['parentid'], state='open')
+        return {"success": True}
+
+    def insert(self, *k, **kw):
+        """插入新记录，成功的话，返回新记录的字典"""
+
+        kw.pop('isNewRecord', 'true')  # easyui 的框架在新增时会传这个参数
+        newid = self.db.insert(self.dct['table'], **kw)
+        res = self.db.select(self.dct['table'], id=newid)
+        return res['rows'][0]
+
+    def select(self,  sort="", order="", rows=10, page=1, *k, **kw):
+        """获取数据的JSON方法
+        以下关键字因为用作参数，不能作为字段名称：rows, page, sort, order, group, table"""
+
+        rows, page = int(rows), int(page)
+        if order:    # 要将easyui的order参数，转换为dbapi的order参数
+            # easyui的sort: 逗号分隔的字段列表, order: 字段分隔的"asc","desc"列表。
+            c = zip(sort.split(','), order.split(','))
+            order = ','.join(' '.join(d) for d in c)
+        # print('locas @ sparrow.select:', locals())
+        result = self.db.select(self.dct['table'], order=order, rows=rows, page=page, **kw)
+        res = {'rows': result['rows'], 'total': len(result['rows']), 'pagesize': rows, 'pagenumber': page}
+        if page > 1 or res['total'] == rows:
+            # 并非一页能放完的，需要取真正的总数，以便能显示页数和翻页
+            res['total'] = self.db.count(self.dct['table'], **kw)
+        return res
+
+    def tree(self, id=0, depth=1, rows=3, page=1, **kw):
+        """从数据表中取得树形结构的通用方法
+        depth: 深度，０表示不递归，n表示递归n层，负数表示递归到底。不递归展开的话，算法简单得多"""
+
+        rows, page = int(rows), int(page)
+        kw_l = dict(parentid=id, rows=rows, page=page)
+        kw_l['order'] = 'asc'
+        kw_l['sort'] = 'display'
+        if 'new_ids' in kw:
+            kw['id'] = kw['new_ids']    # 限定只在ids集合中取结果
+        # ids = kw.get('ids', [])
+        recs = self.select(**kw_l)
+        if int(recs['total']) > rows:
+            return recs
+        else:
+            return recs['rows']
+        """
+        result = []
+        for r in recs['rows']:
+            if r['id'] in ids:
+                r['checkallow'] = True
+            else:
+                r['checkallow'] = False
+                # r['iconCls'] = 'icon-lock'
+            result.append(r)
+            if depth and r['state'] == 'closed':        # 当需要递归，且当前节点非为叶子节点时
+                result[-1]['state'] = 'open'
+                kw_t = kw.copy()
+                kw_t['rows'] = rows
+                kw_t['id'] = r['id']
+                kw_t['depth'] = int(depth) - 1
+                result[-1]['children'] = default.tree(self, **kw_t)
+        return result
+        """
+
+    def update(self, id=None, **kw):
+        """更新记录，返回更新后的记录的字典"""
+        self.db.update(self.dct['table'], id, **kw)
+        return self.db.select(self.dct['table'], id=id)['rows'][0]
 
 
-# __import__(__name__, {}, {}, [x for x in os.listdir(__name__.replace('.', os.sep)) if x.count('.') < 1])
-__import__(__name__, {}, {}, [x.split('.')[0] for x in os.listdir(__name__.replace('.', os.sep))])
+# 在每个包的末尾，手工导入下级各个目录，注意，不导入.py文件，各目录名称也在8个字符以内，不含'.'字符。
+__import__(__name__, {}, {}, [x for x in os.listdir(os.path.dirname(os.path.abspath(__file__))) if x.count('.') < 1])
