@@ -1,0 +1,28 @@
+﻿## a_setup/base1.html
+
+<div style="padding: 5px;">
+##    <a href="/navigate" class="easyui-linkbutton" data-options="plain:false,iconCls:'icon-tip'" style="width:100px">导航</a>
+    <a href=".?table=${table}" class="easyui-linkbutton" data-options="plain:false,iconCls:'icon-tip'" style="width:100px">首页</a>
+    <a href="edit?table=${table}" class="easyui-linkbutton" data-options="plain:false,iconCls:'icon-edit'" style="width:100px">编辑</a>
+    <a href="log?table=${table}" class="easyui-linkbutton" data-options="plain:false" style="width:100px">日志</a>
+<form id="change_table" action="" style="display:inline;float:right;padding:0 15px 0 0">
+    <input type="hidden" name="chg" value="true" />
+    <input id="chg_table" class="easyui-combogrid" name="table" value="${table}" data-options="
+	idField:'name', textField:'name', fit: false,
+	columns: [[ {field:'id', title:'id'},
+	    {field:'name_zh', title:'表名称'}
+	    ,{field:'name', title:'表代码'}
+	    ]],
+	url: 'select?table=cfg_tables',
+	queryParams: { kind:'${table_kind}'} , pagination: true
+			, mode: 'remote' , fitColumns: false
+			, panelHeight: 400 , panelWidth: 250
+			, width: 120 , delay: 100
+			, title: '目标表选择' 
+	    " 
+	    />
+	## 这儿的url, 不能含中文, 否则在ie8里不能解析. 或者需要编码才行.
+    <a href="#" class="easyui-linkbutton" onclick="change_table.submit()" title="在输入框输入字母, 会按表名模糊查询；输入汉字, 会按表描述查询">置为目标表</a>
+</form>
+</div>
+

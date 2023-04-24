@@ -1,0 +1,74 @@
+﻿## 0_setup/index.html
+<%inherit file="log.html" />
+
+${parent.body()}
+
+<%block name="js">
+<script type="text/javascript">
+        $(function(){
+	    $('#dg').hide();
+	    $('#toolbar').hide();   // 隐藏搜索框，可能树形并不需要。
+	    //$('#dg1_tb').hide();
+            $('#tr').tree({
+		url:'Tree?_table=${_table}'
+		,onSelect: function(node) {
+		    $('#dg1').datagrid( {
+			title: node.text+'已分配',
+			url: "select?_table=${_table}&_table_az=_table_az&${_table_a}="+node.id
+			,queryParams: {
+			//${_table_a}: node.id,
+			include:$('#include').is(':checked')
+			}
+			})
+		    }
+		/*,onContentMenu: function(e, node) {
+		    alert('Con');
+		    }
+		,onCheck: function(node, checked) {
+		    alert('Select');
+		    }
+		    */
+            });
+        });
+</script>
+</%block>
+
+<%block name="p0_body_add">
+<hr>
+<div style="float:left;width:48%">
+    <table id="dg1" class="easyui-datagrid" title="${_table}-已分配"  data-options="
+    width:'100%%', fit: false, 
+    rownumbers:true, singleSelect:true, pagination:true, pageSize:10
+    ,toolbar:'#dg1_tb'"
+    >
+
+    <thead><tr>
+	<th field="ck" checkbox="true"></th>
+        <th field="id" >id</th>
+	<th field="${_table}" >${_table}</th>
+	<th field="${_table_z}" >${_table_z}</th>
+	<th field="${_table_z}_name" >${_table_z}_name</th>
+    </tr></thead>
+<div id="dg1_tb" style="margin:0px">
+    <input id='include' type="checkbox" checked onchange="$('#dg1').datagrid('load',{include:$(this).is(':checked')})">包含下级
+</div>
+</table>
+</div>
+<%block name="dg2"/>
+</%block>
+
+
+<%block name="mright">
+    <a href="javascript:void(0)" class="easyui-menubutton" data-options="plain:true,hasDownArrow:true,width:'60px',menu:'#mm-r',menuAlign:'right'">功能</a>
+    <div id="mm-r" class="easyui-menu" data-options="BBitemHeight:30, noline:true, minWidth:50">
+	<div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true " onclick="javascript:change_table()">选择源</div>
+	<div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-search'" onclick="javascript:searchBook()">查找</div>
+	%if cherrypy.request.wsgi_environ['PATH_INFO'].endswith('edit'):	## 如果是edit结尾，则显示功能菜单(新增，回复，修改，删除，保存
+	<div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('addRow')">增加</div>
+	<div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('destroyRow')">删除</div>
+	<div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('saveRow')">保存</div>
+	<div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('cancelRow')">取消</div>
+	%endif
+    </div>
+</%block>
+

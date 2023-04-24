@@ -1,0 +1,65 @@
+﻿## 0_setup/user/default.html
+<%inherit file="index.html" />
+
+${parent.body()}
+
+
+<%block name="func_js">
+<script type="text/javascript">
+var editingId;
+function edit() {
+    var row = $('#dg').treegrid('getSelected');
+    if (editingId != undefined) {
+	//if (row.id != editingId ) { // 另一编辑没有结束 
+	//    save();
+	//}
+	//else {
+	//    return; // 再次按了edit键而已
+	//}
+	//editingId = row.id
+	$('#dg').treegrid('select', editingId);
+	return;	// 已经打开了某一行的编辑界面，防止同时编辑多行。可以考虑在unselect的时候触发保存。
+    }
+    if(row) {
+	editingId = row.id;
+	$('#dg').treegrid('beginEdit', editingId);
+    }
+}
+var row;
+function save_callback(data) {	// 后台提交保存信息的回调函数，如成功，刷新编辑行的数据，如不成功，回退修改数据 
+    console.log('data: ', data);
+    $('#dg').treegrid('update', {id:row.id, row: data});
+}
+function save() {
+    if (editingId == undefined) {
+	return }
+    var t = $('#dg');
+    t.treegrid('endEdit', editingId);
+    row = t.treegrid('find', editingId);
+    editingId = undefined;
+    // 如下进行保存后的处理，一般地，会用getJSON提交，以保存数据，并根据返回数据，更新相应的行记录
+    updateUrl = $('#dg').treegrid('options').updateUrl;
+    console.log('UPdate', updateUrl, row);
+    $.getJSON(updateUrl, row, save_callback, 'JSON');
+	    
+}
+function cancel() {
+    if (editingId != undefined) {
+	$('#dg').treegrid('cancelEdit', editingId);
+	editingId = undefined;
+    }
+}
+</script>
+</%block>
+
+<%block name="toolbutton">
+<!-- block toolbutton of edit@0_setup\treegird2 -->
+    ## 以下部分可以考虑单列一个edit_menu.html的菜单文件, 用include的方式包含进来.
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="javascript:moreBook()">显示全部</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="javascript:newBook()">增加</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="javascript:edit()">修改</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-save" plain="true" onclick="javascript:save()">保存</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" plain="true" onclick="javascript:cancel()" data-options="disabled:false" >取消</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false" data-options="disabled:true">导入</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false" data-options="disabled:true" >导出</a>
+</%block>

@@ -1,0 +1,43 @@
+﻿## 0_setup/index.html
+<%inherit file="log.html" />
+
+${parent.body()}
+
+<%block name="js">
+<script type="text/javascript">
+        $(function(){
+            $('#dg').datagrid({
+		url:'Get?_table=${_table}'
+		,height:360
+		,onSelect: function(index, row) {
+		    $('#tr1').tree( {
+		    url:"Tree?_table=${_table}"
+			,queryParams: {${_table_a}: row.id}
+		    })
+		}
+            });
+	    $('#m1').hide();
+	    $('#m2').hide();
+        });
+    </script>
+</%block>
+
+<%block name="p0_body_add">
+<br>
+<div style="float:left;width:48%">
+    <div id="m1" title="锁定项只是路径依敕而显示,不能被选中">
+	<a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="javascript: rf1(); ">删除</a>
+    </div>
+    <ul id="tr1"> </ul>
+</div>
+<div style="float:right;width:48%">
+    <div id="m2" title="锁定项只是路径依赖而显示, 不能被选中">
+	<a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="javascript:rf2()">增加</a>
+    </div>
+    <ul id="tr2" > </ul>
+</div>
+</%block>
+
+<%block name="mright_edit">
+	##<div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('addRow')">增加</div>
+</%block>

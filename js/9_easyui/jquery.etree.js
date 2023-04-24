@@ -44,7 +44,7 @@
 				var targetId = $(target).tree('getNode', targetNode).id;
 				var data = $.ajax({
 					url: opts.dndUrl, type: 'post', dataType: 'json',
-					async: false,       // 使用同步提交，根据返回结果决定如何处理！！
+					async: false,
 					data: { id: source.id, targetId: targetId, point: point }
 				}).responseJSON;
 				if (data.isError) {
@@ -53,42 +53,27 @@
 				}
 				opts.onBeforeDrop.call(target, targetNode, source, point);
 			},
-			onSelect: function(node) {
-                if ('children' in node && 'total' in node && node.total>node.children.length) {
-                    $('#pp').remove();
-                    tree = this;
-                    pp = $('<div id="pp" style="position:relative;top:-6px;left:200px;BBfloat:right;display:inline-block"></div>').appendTo(node.target);
-                    pp.pagination({layout:['prev', 'links', 'next'], displayMsg:'', total:node.total
-                        ,pageSize:node.pagesize, pageNumber: node.pageNumber
-                        ,onSelectPage: function(pageNumber, pageSize) {
-                            opts['queryParams']['page'] = pageNumber;
-                            $(tree).tree('reload', node.target);
-                            opts['queryParams']['page'] = undefined;
-                            node.pageNumber = pageNumber;
-                        }
-                    });
-                }
-				opts.onSelect.call(node);
-			}
-           ,loadFilter: function(data) {
+            loadFilter: function(data) {
+                console.log('load in etree', data);
                 if (data.d) {
                     return data.d;
-                } else if (data.total) {    // 如果返回的是select形式，表明需要翻页
+                } else if (data.total) {
                     parentNode = $(this).tree('find', data.rows[0].parentid);
                     if (parentNode) {
                         parentNode.total = data.total;
                         parentNode.pagesize = data.pagesize;
-                    } else {    // 是顶层目录，如果记录数超过一——显示翻页插件
+                    } else {
                         tree = this;
+                        $('#pp0').remove();
+                        $('<div id="pp0"></div>').insertBefore($(this));
                         $('#pp0').css({visibility:"visible"}).pagination({
-                            total:data.total, pageSize: data.pagesize
+                            total:data.total, pageSize: data.pagesize, pageNumber: data.pagenumber
                             ,layout: ['prev', 'links', 'next'], displayMsg:''
                             ,onSelectPage: function(pageNumber, pageSize) {
+                                opts = $(tree).etree('options');
                                 opts['queryParams']['page'] = pageNumber;
                                 $(tree).tree('reload');
-                                //$(tree).tree({queryParams: {rows:pageSize, page:pageNumber}});
                                 opts['queryParams']['page'] = undefined;
-                                //$(tree).tree('options')['queryParams']['page'] = undefined;
                             }
                         });
                     }
@@ -96,10 +81,26 @@
                 } else {
                     return data;
                 }
-            }
-			,onExpand: function(node) {
+            },
+            onSelect: function(node) {
+                if ('children' in node && 'total' in node && node.total>node.children.length) {
+                    $('#pp').remove();
+                    tree = this;
+                    pp = $('<span id="pp" style="position:relative;top:-6px;right:0px;float:right;display:inline-block"></span>').appendTo(node.target);
+                    pp.pagination({layout:['prev', 'links', 'next'], displayMsg:'', total:node.total
+                        ,pageSize:node.pagesize, pageNumber: node.pageNumber
+                        ,onSelectPage: function(pageNumber, pageSize) {
+                            opts = $(tree).etree('options');
+                            opts['queryParams']['page'] = pageNumber;
+                            $(tree).etree('reload', node.target);
+                            opts['queryParams']['page'] = undefined;
+                            node.pageNumber = pageNumber;
+                        }
+                    });
+                }
+			},
+			onExpand: function(node) {
 			    $(this).tree('select', node.target);
-			    opts.onExpand.call(node);
 			}
 		}));
 	}
@@ -128,7 +129,7 @@
 		});
 	};
 
-	$.fn.etree.methods = {
+    $.fn.etree.methods = {
 		options: function(jq){
 			return $.data(jq[0], 'etree').options;
 		},
@@ -145,7 +146,7 @@
 						parentId: (node ? node.id : 0)
 					},
 					success: function(data){
-					    if (data.isError) { //如果增加不成功，返回的对象不会含id属性
+					    if (data.isError) {
 					        $.messager.show(data);
 					    } else {
                             tree.tree('append', {
@@ -202,7 +203,7 @@
 			});
 		}
 	};
-	
+
 	$.fn.etree.parseOptions = function(target){
 		var t = $(target);
 		return $.extend({}, $.fn.tree.parseOptions(target), {
@@ -230,7 +231,7 @@
 				msg:'Are you sure you want to delete?'
 			}
 		},
-	
+
 		dnd:true,
 		url:null,	// return tree data, or {total:total, pagesize:pagesize, rows:[data..]} if multi-page.
 		createUrl:null,	// post parentId, return the created node data{id,text,...}, or {isError:true, msg:errorMsg, msg:msg}

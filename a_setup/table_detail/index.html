@@ -1,0 +1,338 @@
+﻿## 0_setup/index.html
+<%inherit file="log.html" />
+## ${parent.body()}
+
+<%block name="js">
+<script type="text/javascript">
+    function esc_str(str, row, index) {
+	try {
+	row['content_n'] = row['content'].substring(0,200).replace(/&/g,"&amp;").replace(/ /g,"&nbsp;").replace(/</g, "&lt;").replace(/\n/g, "<br>");
+	//row['content_n'] = '<pre>' + row['content'] + '</pre>';
+	} catch(err) {
+	    row['content_n'] = 'undefind';
+	    row['content'] = 'undefind';
+	    console.log('content not found', row, str, index);
+	    //return '';
+	}
+	res = "{filename} {content_n} <br /> <div style='float:right;background-color:#E0ECEF'>"
+	var left = new Array();
+	if (row['content'].length>200 ) {
+	    left.push('<a BBclass="easyui-linkbutton" href="javascript:moreBook()">显示全部</a>');
+	}
+	if ('filename' in row && row.filename != "" && row.fileid != '0') {
+	    left.push('<a BBclass="easyui-linkbutton" href="./_download?fileid={fileid}" title="{filename}">下载</a>'.format(row));
+	}
+	//console.log('LEFT', left);
+	//if (left.length>0) {
+	    //left = left.join(" ");
+	    res = res + left.join(" ");
+	//}
+	res += " [#{id}: {state2}, {childrens}/{views} - {name} ({stime}) ] </div></div>"
+	res = res.format(row);
+	return res;
+    }
+
+    $(function(){
+	//console.log('haha');
+	$('#dg').datagrid({
+	    url: 'Get?_table=${_table}'
+	    ,showHeader:false
+	    //,columns: [[{field:'id', formatter:esc_str}]]
+	    ,view: detailview
+	    ,nowrap:false
+	    ,width:"99%"
+	    ,striped: true
+	    ,detailFormatter: function(index, row) {
+		//if(row.state!='closed') { return ''; }
+		//else {return '<table />';}
+		return '<table id="view'+row.id+'" />';
+	    }
+	    ,onExpandRow: function(index, row) {
+		var rows = $('#dg').datagrid('getRows');    // 控制始部分展开一行
+		$.each(rows, function(i,k) {
+		    var exp = $('#dg').datagrid('getExpander',i);
+		    if(exp.length && exp.hasClass('datagrid-row-collapse')) {
+			if(k.id != row.id) {
+			    $('#dg').datagrid('collapseRow',i);
+			}
+		    }
+		});
+		//console.log('state @ expand', row);
+		if(row.state!="closed") {   // 没有回复内容，不可展开。没有找到有什么标志直接把展开标志去掉或者是直接置为减号
+		    $('#dg').datagrid('selectRow', index);
+		    return;
+		}
+		//var ddv = $(this).datagrid('getRowDetail', index).find('table');
+		var ddv = $("#view"+row.id);	// 用这种绝对指定的方式，才能解决第二次展开时多次访问刷新数据的问题，有可能是find返回了多个table对象？
+		//console.log(ddv);
+		ddv.datagrid({
+		    columns:[[
+		    {field:'id', formatter:esc_str}
+		    //{field:'id'}
+			]],
+		    fitColumns: true,
+		    width:"99%", 
+		    striped: true, 
+		    showHeader:false, 
+		    method: "POST", 
+		    pagination:true,	// 在装载完成后，再根据页数，决定是否把翻页栏隐藏掉。
+		    url:'Get?parentid='+row.id,
+		    cached:false,
+		    //loadFilter: esc_content,
+		    fit: false, 
+		    nowrap: false, 
+		    striped: true, 
+		    width: '100%', 
+		    //height: '300px', 
+		    autoRowHeight: false,
+		    singleSelect: true, 
+		    onClickRow: function(index, row) {
+			action_row = row;
+			if(action) {
+			    if(action=="editBook()") {editBook(row)}
+			    else if(action=="replyBook()") {replyBook(row)}
+			    else if(action=="moreBook()") {moreBook(row)}
+			}
+		    },
+		    onLoadSuccess: function() {
+		    	//var a = 3;
+			$('#dg').datagrid('fixDetailRowHeight',index);
+			$('#dg').datagrid('selectRow', index);
+			//console.log($(this));
+			//console.log($(this).datagrid('options'));
+			//console.log($(this).datagrid('getData'));
+			count = $(this).datagrid('getData').total;
+
+			pager = $(this).datagrid('getPager');
+			if (pager) {
+			    if (pager.pagination('options').total<11) {	// 如果不超过10条，则隐藏翻页栏
+				//pager = $(this).datagrid('getPager');
+				//console.log(pager.pagination('options'));
+				pager.hide();
+			    }
+			}
+		    }
+		});
+		$('#dg').datagrid('fixDetailRowHeight',index);
+	    }
+	    ,rownumbers: false
+	    ,onClickRow: function(index, row) {
+		action_row = row;
+		var rows = $('#dg').datagrid('getRows');    // 控制始部分展开一行
+		$.each(rows, function(i,k) {
+		    var exp = $('#dg').datagrid('getExpander',i);
+		    if(exp.length && exp.hasClass('datagrid-row-collapse')) {
+			if(k.id != row.id) {
+			    $('#dg').datagrid('collapseRow',i);
+			}
+		    }
+		});
+		if(action) {
+		    if(action=="editBook()") {editBook(row)}
+		    else if(action=="replyBook()") {replyBook(row)}
+		    else if(action=="moreBook()") {moreBook(row)}
+		}
+	    }
+	    ,onDblClickRow: function(index, row) {
+		moreBook(row);
+	    }
+	});
+	//$('#dg').datagrid('hideColumn',"ck");
+	//$("body").css("width", $(window).width()); 
+    });
+
+$.prototype.serializeObject = function() {
+var a, o, h, i, e;
+a = this.serializeArray();
+o = {};
+h = o.hasOwnProperty;
+for (i=0; i<a.length;i++) {
+    e = a[i];
+    if (!h.call(o, e.name)) {
+	o[e.name] = e.value;
+	}
+    }
+    return o;
+};
+
+var url;
+var action=undefined;
+var action_row = undefined;
+function saveBook() {
+    function callback(result) {
+	    console.log('SUCCESS',typeof(result),  result);
+	    //var result = eval('('+reult+')');
+	    //var result = $.parseJSON(result);
+	    try {
+		//var result = $.parseJSON(result);
+		//eval('result = '+result);
+		var end = result.lastIndexOf('}');
+		result  = result.substring(0,end+1);
+		result = $.parseJSON(result);
+		// 如果转换出错，就刷新整体表格数据并关闭对话框。
+	    }
+	    catch(err) {
+		$.messager.show({title:'错误，重新刷新表格内容',msg:'返回内容转换JSON对象出错'+err});
+		$('#dg').datagrid('reload');
+		action = undefined;
+		$('#dlg').dialog('close');
+		return;
+	    }
+	    // 用这种eval方式，当result中有引号，大小于号等HTML实体符号时，会失败。而如果用$.post方式，则可以直接指定返回JSON对象，但缺点是post无法提交文件上传字段内容！！如果form.submit可以指定返回值是JSON对象就好了！！
+	    // 使用parseJSON方式，当字符串值中有不对称的html标记，或者未关闭的HTML标记，或者不成对的单双引号，都有可能会出现问题，但为了文件上传，只有此此处遇到错误时，干脆刷新整个表格内容为快！
+	    //console.log('SUCCESS', result);
+	    if (result.id) {
+		if (action=='newBook()') {	//新增则刷新全页
+		    //$('#dg').datagrid('reload');
+		    $('#dg').datagrid('insertRow',{index:0, row:result});
+		    $('#dg').datagrid('selectRow', 0);	// 仍然选中了增加之前的第一条记录？
+		} else if (action=='editBook()') {	// 编辑则刷新该记录
+		    var row = $('#dg').datagrid('getSelected');
+		    index = $('#dg').datagrid('getRowIndex',row);
+		    //console.log('main? ', row.id, result.id, row.id==result.id);
+		    if (row.id==result.id) {	//是编辑的主题,则刷新主题
+			console.log('begin..');
+			$('#dg').datagrid('updateRow',{ index:index, row: result });
+			$('#dg').datagrid('fixDetailRowHeight',index);
+			$('#dg').datagrid('collapseRow',index);
+			//$('#dg').datagrid('expandRow',index);
+			//var ddv = $('#view'+row.id);
+			//ddv.datagrid({url:'Get?parentid='+row.id});
+			console.log('编辑涉及两次调用了formatter? ..');
+			console.log(index, row.content);
+			console.log(index, result.content);
+			row = $('#dg').datagrid('getSelected');
+			console.log(index, row.content);
+			// 好像也不用太担心，只是表格显示出来看上去经过了两次转义而已。
+		    } else {
+			//var ddv= $('#dg').datagrid('getRowDetail', index).find('table');
+			var ddv = $('#view'+row.id);
+			//console.log('DDV', ddv);
+			ddv.datagrid({url:'Get?parentid='+row.id});
+			//console.log('reload', ddv);
+		    }
+		    //$('#dg').datagrid('collapseRow',index);
+		    //try {
+			//$('#dg').datagrid('expandRow',index);
+		    //}
+		    //catch(err) {
+			//console.log(err);
+		    //}
+		    $('#dg').datagrid('fixDetailRowHeight',index);
+		} else if (action=='replyBook()') {	// 回复则重新展开该记录
+		    var row = $('#dg').datagrid('getSelected');
+		    index = $('#dg').datagrid('getRowIndex',row);
+		    console.log('1 REPLY', row);
+		    if (row.state != 'closed') {    // 第一次回复，状态为open或空，不能马上展开。
+			row.state='closed';	//  回复后则状态为可展开
+			$('#dg').datagrid('updateRow', {index:index, row:row});
+		    }
+		    var row = $('#dg').datagrid('getSelected');
+		    console.log(row);
+		    //console.log(index, row);
+		    //$('#dg').datagrid('updateRow',{index: index, row:row});	//又莫名其妙地刷新不成功，但state可能还是置成功了的.
+		    var ddv = $('#dg').datagrid('getRowDetail', index).find('table');
+		    console.log('ddv: ', ddv);
+		    ddv2 = $('#view'+row.id);
+		    console.log('ddv2', ddv2);
+		    //ddv.datagrid('reload');	//想找出那个表格reload的想法失败
+		    try {
+			//$('#dg').datagrid('collapseRow',index);
+			//$('#dg').datagrid('expandRow',index);	// 这个展开JS会报错, 但无法追踪:TypeError: a is undefined
+			ddv2.datagrid({url:'Get?parentid='+row.id});
+		    } catch(err) {
+			//ddv.datagrid('load', {url:'Get?parentid='+row.id});
+			console.log(err);
+		    }
+		    $('#dg').datagrid('fixDetailRowHeight',index);
+		}
+	    } else {
+		console.log('No id?', result);
+		$.messager.show( {
+		    title: 'Error',
+		    msg: result
+		});
+	    }
+	    action = undefined;
+	    $('#dlg').dialog('close');
+    }
+    if($('#fm').form('validate')) {
+	console.log('fm: ', $('#fm'));
+	console.log('form:', $('#fm').serializeArray());
+	var formData = new FormData($('#fm')[0]);
+	formData.append("name",'tst');
+	console.log('formData', formData);
+	console.log('filebox', $('input[name="filebox"]'));
+	console.log('filebox', $('input[name="filebox"]').val());
+	data2 = $('#fm').serializeArray();
+	console.log('data2 ', data2);
+	data2.push($('input[name="filebox"]'));
+	console.log('data2 ', data2);
+
+	//$.post(url, formData, callback, 'JSON');
+	//$.post(url, $('#fm').serialize()+'&filebox='+$('input[name="filebox"]').val(), callback, 'JSON');
+	//$.post(url, $('#fm').serializeArray(), callback, 'JSON'); // $.post方式可以直接返回JSON对象，在字段内容里涉及各种转义字符时，仍能很好的显示，但缺点是不能上传文件。
+	//$.post(url, data2, callback, 'JSON');
+	$('#fm').form('submit', { url:url ,dataType: 'json' ,success:callback });
+	// 只有form.submit方式，才能上传文件，否则只有单独尝试一个ajaxFileUpload.js文件。
+	/*
+	$.ajaxFileUpload( {
+		url:url, fileElementId: 'filebox', dataType: 'JSON', data: $('#fm').serializeObject(), success: callback
+	});	// 使用这个插件，虽可以上传文件，未见得返回JSON对象，而且再次编辑时，会报"TypeError: _4bf is undefind.
+	*/	
+    }
+}
+</script>
+
+</%block>
+
+<%block name="p0_body_add">
+<div id="dlg" class="easyui-dialog" style="width:500px"
+    closed="true" buttons="#dlg-buttons">
+    <form id="fm" method="post" style="margin:0;padding:10px 20px" enctype="multipart/form-data">
+    ##<form id="fm" method="post" novalidate style="margin:0;padding:10px 20px" enctype="multipart/form-data">
+    ##<form id="fm" method="post" ENCTYPE="multipart/form-data" action="" >
+	% for col in table_class._desc[:]:
+	% if col[0] not in ('id','name','stime','root_id','childrens','parentid','state', 'kind', 'fileid','filename'):
+	    ## 如何增加文件上传栏？
+	    <div style="margin-bottom:10px">
+		##${col[0]} 
+		%if col[1]==25:
+		<input id="${col[0]}" name="${col[0]}" class="easyui-textbox" style="width:96%" labelPostion="left"  data-options="multiline:true,height:'300px',label:'${col[0]}'" />
+		%else:	# col[1]==1043:
+		<input id="${col[0]}" name="${col[0]}" class="easyui-textbox" style="width:96%" labelPostion="left"  data-options="label:'${col[0]}'" />
+		%endif
+	    </div>
+	%endif
+	% endfor
+	  ##<div id="filebox"><input name="filebox" type="file" BBclass="easyui-filebox" style="width:80%" labelPosition="left" data-options="label:'上传文件'" /></div>
+	% if 'filename' in [col[0] for col in table_class._desc]:	## 如果有filename字段, 显示上传框，fileid, filename, filename链接。在新增/修改/回复/显示全部时，根据需要显示和隐藏相应部件
+	  <div id="filebox"><input name="filebox" class="easyui-filebox" style="width:80%" labelPosition="left" data-options="label:'上传文件'" /></div>
+	  <div id="fileid" style="margin-bottom:10px"><input name="fileid" class="easyui-textbox" style="width:80%" labelPosition="left" data-options="label:'fileid',readonly:true, editable: false" /></div>
+	  <div id="filename"><input name="filename" class="easyui-textbox" style="width:80%" labelPosition="left" data-options="label:'filename', readonly:true, disabled: false" /></div>
+      % endif
+    </form>
+</div>
+<div id="dlg-buttons">
+    ##<a id="dlg_save" href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" onclick="javascript:$('#fm').submit();" style="width:90px">保存</a>
+    <a id="dlg_save" href="javascript:void(0)" class="easyui-linkbutton c6" iconCls="icon-ok" onclick="javascript:saveBook()" style="width:90px">保存</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" iconCls="icon-cancel" onclick="javascript:$('#dlg').dialog('close');action=undefined" style="width:90px">关闭</a>
+</div>
+</%block>
+
+<%block name="mright_edit">
+    <div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="newBook()">增加</div>
+</%block>
+
+<%block name="toolbutton">
+    ## 以下部分可以考虑单列一个edit_menu.html的菜单文件, 用include的方式包含进来.
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-more" plain="true" onclick="javascript:moreBook()">显示全部</a>
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="javascript:newBook()">增加</a>
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="javascript:editBook()">修改</a>
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:replyBook()">回复</a>
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false">删除</a>
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false">导入</a>
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false">导出</a>
+
+</%block>
+

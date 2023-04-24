@@ -1,0 +1,52 @@
+﻿## 0_setup/index.html
+<%inherit file="log.html" />
+
+${parent.body()}
+
+<%block name="js">
+    <script type="text/javascript">
+    $(function(){
+	$('#dg').datagrid({
+	    //height:360
+	    //,columns: columns
+	    //,
+	    url:'Get?_table=${_table}'
+	    ,onSelect: function(index, row) {
+		$('#dg1').datagrid( {
+		url: "Get?_table=${_table}&_table_az=_table_az"
+		,queryParams: {${_real_table}: row.id}
+		})
+	    }
+	});
+    });
+    </script>
+</%block>
+
+<%block name="p0_body_add">
+    <hr>
+    <div style="float:left;width:48%">
+    <table id="dg1" class="easyui-datagrid" title="${_table_az}-已分配"  data-options="
+    width:'100%%', fit: false, 
+    rownumbers:true, singleSelect:true, pagination:true, pageSize:10"
+    >
+
+    <thead><tr>
+	<th field="ck" checkbox="true"></th>
+        <th field="id" >id</th>
+	<th field="${_real_table}" >${_real_table}</th>
+	<th field="${_table_z}" >${_table_z}</th>
+	<th field="${_table_z}_name" >${_table_z}_name</th>
+    </tr></thead>
+    </table>
+    </div>
+<%block name="dg2"/>
+</%block>
+
+<%block name="p2" />
+
+<%block name="mright_edit">
+    <div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('addRow')">增加</div>
+    <div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('destroyRow')">删除</div>
+    <div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('saveRow')">保存</div>
+    <div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('cancelRow')">取消</div>
+</%block>

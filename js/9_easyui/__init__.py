@@ -1,11 +1,13 @@
 ﻿# -*- coding: utf-8 -*-
 # $Header: D:\\RCS\\D\\python_study\\cherrypy\\dragonfly.py,v 1.2 2011-10-06 23:17:31+08 administrator Exp administrator $
 
+import os
+from .. import default as pardefault
+
 name = 'easyui演示' # 这个变量如果中间有空格的话, 在easyui tree里, 不能直接作用<a href加的链接, 很奇怪.
 
-from .. import default
 
-class default(default):
+class default(pardefault):
     def __init__(self, *k, **kw):
         super(default, self).__init__(*k, **kw)
         if len(self._k):
@@ -15,10 +17,10 @@ class default(default):
             self._dic['left_tree'] = self.left_tree()
 
     def dir(self, *k, **kw):
-        dir = os.path.dirname(os.path.abspath(self.__file__))
-        dir = os.sep.join((dir, 'demo-mobile', self._dir))
+        dir_ = os.path.dirname(os.path.abspath(self.__file__))
+        dir_ = os.sep.join((dir_, 'demo-mobile', self._dir))
         self._dic['dir'] = self._dir
-        self._dic['files'] = os.listdir(dir)
+        self._dic['files'] = os.listdir(dir_)
         #self._dic['left_json'] = self.left_json()
         #self.__name__ =__name__
         #print ('init for easyui...')

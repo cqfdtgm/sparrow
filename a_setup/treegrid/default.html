@@ -1,0 +1,253 @@
+﻿## 0_setup/index.html
+<%inherit file="log.html" />
+
+##${parent.body()}
+
+<%block name="js">
+<!-- block js @ 0_setup\treegrid\default.html -->
+<script type="text/javascript">
+   $(function(){
+	$('#dg').treegrid({
+	    url:'select?_table=${_table}' ,lines:true
+	    //,columns: columns
+	    ,idField: 'id' ,treeField: 'id'
+	    , onDblClickRow: function(row) {
+		console.log('moreBook start..', row);
+		moreBook(row); }
+	    , onCollapse: function(row) {
+		console.log('onCollapse, row.state: ', row.state);
+		//console.log('onCollapse ', this, row, row.id);
+		//console.log('children: ', chil);
+		coll_del(row);
+		//$.each(chil, function(i,v) {
+		//chil = $(this).treegrid('getChildren',row.id);
+		    //console.log('each ', this, i, v.id);
+		//    $('#dg').treegrid('remove', v.id);
+		//    });
+		//console.log('row.state: ', row.state);
+		// 折叠时删除下级记录，以便重新打开时，向服务器刷新数据
+		//$('#dg').treegrid('refresh', row.id);
+		}
+	    , onExpand: function(row) {
+		console.log('展开时选择', row.id, row);
+		$('#dg').treegrid('select', row.id);
+	    }
+	    ,onLoadSuccess: function () {	// 装载完毕后，缩减翻页栏，视情形隐藏翻页栏
+		count = $(this).datagrid('getData').total;
+
+		pager = $(this).datagrid('getPager');
+		pager.pagination({layout: ['list','prev','next','refresh','manual'], displayMsg:'{total}记录'});
+		if (pager) {
+		    if (pager.pagination('options').total<11) {	// 如果不超过10条，则隐藏翻页栏
+			pager.hide();
+		    }
+		}
+	    }
+
+	});
+    });
+</script>
+</%block>
+
+
+<%block name="js_func">
+<!-- block js_func of 0_setup\treegrid\default.html -->
+${parent.js_func()}
+<script type="text/javascript">
+    var columns = [[{field:'id', title:'Id', width:100} ,{field:'content',title:'content', formatter:esc_str, width:100} ,{field:'name', title:'name', width:100} ,{field:'filename', title:'文件名'} ,{field:'childrens'} ]];
+    function coll_del(row) {	// 当折叠至row时，删除其下级记录，以便再展开时刷新。
+	console.log('coll_del, 删除下级，以便再展开时刷新', row.id);
+	chil = $('#dg').treegrid('getChildren', row.id);
+	console.log('coll_del, 删除下级，以便再展开时刷新2', row.id, chil);
+	$('#dg').treegrid('collapse', row.id);	// 是否要先收折，再删除掉下级？
+	console.log('coll_del, 删除下级，以便再展开时刷新2。5', row.id, chil);
+	$.each(chil, function(i,v) {
+		try {
+		$('#dg').treegrid('remove', v.id);
+		}
+		catch(err) {
+		console.log('error', err);
+		}
+		});
+	console.log('coll_del, 删除下级，以便再展开时刷新3', row.id);
+	row.state = 'closed'
+	$('#dg').treegrid('refresh', row.id);
+	console.log('coll_del, 删除下级，以便再展开时刷新5', row.id);
+	$('#dg').treegrid('select', row.id);
+	console.log('coll_del, 删除下级，以便再展开时刷新4', row.id);
+    }
+    function saveBook() {
+	function callback(result, b, c) {
+	    console.log('result', result, b, c);
+	    try {
+		var end = result.lastIndexOf('}');
+		result  = result.substring(0,end+1);
+		result = $.parseJSON(result);
+		// 如果转换出错，就刷新整体表格数据并关闭对话框。
+	    }
+	    catch(err) {
+		console.log('err', err, result);
+		$.messager.show({title:'错误，重新刷新表格内容',msg:'返回内容转换JSON对象出错'+err});
+		$('#dg').treegrid('reload');
+		action = undefined;
+		//$('#dlg').dialog('close');
+		return;
+	    }
+	    // 用这种eval方式，当result中有引号，大小于号等HTML实体符号时，会失败。而如果用$.post方式，则可以直接指定返回JSON对象，但缺点是post无法提交文件上传字段内容！！如果form.submit可以指定返回值是JSON对象就好了！！
+	    // 使用parseJSON方式，当字符串值中有不对称的html标记，或者未关闭的HTML标记，或者不成对的单双引号，都有可能会出现问题，但为了文件上传，只有此此处遇到错误时，干脆刷新整个表格内容为快！
+	    //console.log('SUCCESS', result);
+	    if (result.id) {
+		console.log('reuslt.id, ', result.id, action);
+		console.log('action =? ', action=='editBook()');
+		if (action=='newBook()') {	//新增则刷新全页
+		    $('#dg').treegrid('reload');
+		} else if (action=='editBook()') {	// 编辑则刷新该记录
+		    var row = $('#dg').treegrid('getSelected');
+		    console.log('begin.. updateRow', row);
+		    // 注意，datagrid与treegrid的updateRow接口不一样的！
+		    $('#dg').treegrid('update',{ id:row.id, row: result });
+		} else if (action=='replyBook()') {	// 回复则重新展开该记录
+		    var row = $('#dg').treegrid('getSelected');
+		    if (row.state != 'closed') {    // 第一次回复，状态为open或空，不能马上展开。
+			row.state='closed';	//  回复后则状态为可展开
+			// 是否需要ajax提将父记录修改state?
+			$('#dg').treegrid('update', {id:row.id, row:row});
+		    }
+		    console.log('回复后展开，不能触发onCollapse?1');
+		    $('#dg').treegrid('collapse',row.id);
+		    coll_del(row);
+		    // 目前发现第二个回复不能正确展现
+		    //console.log('回复后展开，不能触发onCollapse?2');
+		    //$('#dg').treegrid('expand',row.id);
+		    console.log('回复后展开，不能触发onCollapse?3');
+
+		}   else {
+		    console.log('未知动作？', aciont, row, result);
+		}
+	    } else {
+		console.log('No id?', result);
+		$.messager.show( {
+		    title: 'Error',
+		    msg: result
+		});
+	    }
+	    action = undefined;
+	    return false;
+	}
+	if($('#fm').form('validate')) {
+	    //$.post(url, $('#fm').serializeArray(), callback, 'JSON'); // $.post方式可以直接返回JSON对象，在字段内容里涉及各种转义字符时，仍能很好的显示，但缺点是不能上传文件。
+	    //$.post(url, $('#fm').serializeArray(), callback, 'JSON');
+	    $('#fm').form('submit', { url:url ,dataType: 'JSON' ,success:callback });
+	    // 只有form.submit方式，才能上传文件，否则只有单独尝试一个ajaxFileUpload.js文件。
+	    /*
+	    $.ajaxFileUpload( {
+		    url:url, fileElementId: 'filebox', dataType: 'JSON', data: $('#fm').serializeObject(), success: callback
+	    });	// 使用这个插件，虽可以上传文件，未见得返回JSON对象，而且再次编辑时，会报"TypeError: _4bf is undefind.
+	    */	
+	}
+    }
+
+    function moreBook(row) {	// 显示记录的具体信息，双击记录调用，或在记录里的more链接调用，带参数row。
+	//console.log('start moreBook..', row);
+	$('#p2-title').html('查看 #'+row.id);
+	$('#filebox').hide();
+	if (row.fileid>0) { $('#fileid').show(); $('#filename').show();
+	} else { $('#fileid').hide(); $('#filename').hide(); }
+	$('#fm').form('load', row);
+	action_row = row;
+	$('.easyui-textbox').textbox('readonly',true);
+	$('.easyui-combobox').combobox('readonly',true);
+	$('#dlg_save').hide();
+	$('#mm-r2').empty();
+	%if cherrypy.request.wsgi_environ['PATH_INFO'].endswith('edit'):	## 如果是edit结尾，则显示功能菜单(新增，回复，修改，删除，保存
+	    $('#mm-r2').menu('appendItem', {text:'新增',iconCls:'icon-add',onclick:newBook});
+	    $('#mm-r2').menu('appendItem', {text:'回复',iconCls:'icon-redo',onclick:replyBook});
+	    $('#mm-r2').menu('appendItem', {text:'修改',iconCls:'icon-edit',onclick:editBook});
+	    $('#mm-r2').menu('appendItem', {text:'保存',iconCls:'icon-save',onclick:saveBook, disabled:true});
+	    $('#mm-r2').menu('appendItem', {text:'删除',iconCls:'icon-remove',onclick:delBook});
+	%endif
+    }
+    function newBook() {    // 新增有可能在主页面的功能菜单中调用，也可能在查看/编辑/回复界面调用
+	$('#p2-title').html('新增');
+	$('#dlg_save').show();
+	$('#fm').form('clear');
+	$('#filebox').show();
+	$('#fileid').hide();
+	$('#filename').hide();
+	$('.easyui-textbox').textbox('readonly',false);
+	$('.easyui-combobox').combobox('readonly',false);
+	url = 'Save?_log=false';
+	// 如果自定义p2右上角的功能菜单？
+	$('#mm-r2').empty();
+	$('#mm-r2').menu('appendItem', {text:'保存', iconCls:'icon-Save', onclick:saveBook });
+	action = 'newBook()';
+    }
+    function editBook() {	// 编辑界面，在查看界面调用
+	row = action_row;
+	$('#p2-title').html('编辑 #'+row.id);
+	$('#dlg_save').show();
+	if (row.fileid==0) {	// 没有文件则显示上传框
+	    $('#filebox').show();
+	    $('#fileid').hide();
+	    $('#filename').hide();
+	} else {
+	    $('#filebox').hide();
+	    $('#fileid').show();
+	    $('#filename').show();
+	}
+	$('.easyui-textbox').textbox('readonly',false);
+	$('.easyui-combobox').combobox('readonly',false);
+	$('#mm-r2').empty();
+	%if cherrypy.request.wsgi_environ['PATH_INFO'].endswith('edit'):	## 如果是edit结尾，则显示功能菜单(新增，回复，修改，删除，保存
+	    $('#mm-r2').menu('appendItem', {text:'保存',iconCls:'icon-save',onclick:saveBook});
+	%endif
+	url = 'Update?_log=false&id='+row.id;
+	action = 'editBook()';
+    }
+    function replyBook() {  // 回复，在查看界面调用
+	row = action_row;
+	$('#p2-title').html('回复 #'+row.id);
+	$('#dlg_save').show();
+	$('#filebox').show();
+	$('#fileid').hide();
+	$('#filename').hide();
+	$('#fm').form('clear');
+	$('.easyui-textbox').textbox('readonly',false);
+	$('.easyui-combobox').combobox('readonly',false);
+	$('#mm-r2').empty();
+	%if cherrypy.request.wsgi_environ['PATH_INFO'].endswith('edit'):	## 如果是edit结尾，则显示功能菜单(新增，回复，修改，删除，保存
+	    $('#mm-r2').menu('appendItem', {text:'保存',iconCls:'icon-save',onclick:saveBook});
+	%endif
+	url = 'Save?_log=flase&parentid='+row.id;
+	action = 'replyBook()';
+    }
+    function delBook() {    // 删除记录， 在查看和编辑界面调用
+	row = action_row;
+	$.messager.confirm('警告','你确认要删除记录#'+row.id+'吗？', function(c) {
+		if(c) {
+		    delBook1();
+		}
+	});
+    }
+    function delBook1() {
+	row = action_row;
+	par = $('#dg').treegrid('getParent', row.id);
+	console.log('删除记录', row, par, row.id, par.id);
+	$.getJSON('Destroy', {id:row.id}, function(json, status, jqr) {
+	    if (status=='success') {
+		$('#dg').treegrid('remove', row.id);
+		coll_del(par);
+		//$('#dg').treegrid('collapse', par.id);
+		//$('#dg').treegrid('expand', par.id);
+		//index = $('#dg').datagrid('getRowIndex',row);
+		//$('#dg').datagrid('reload');
+		//$('#dg').datagrid('reload');
+		//$('#dg').datagrid('fixDetailRowHeight', 1);
+	    }else {
+		console.log('err, ', json, status, jqr);
+	    }
+	});
+    }
+</script>
+</%block>
+

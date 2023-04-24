@@ -35,7 +35,7 @@ class default(default_):
     def _download(self, path=""):
         """下载文件的方法"""
 
-        yield open(self.kw['path'], "rb").read()
+        yield open(path, "rb").read()
 
 
 __import__(__name__, {}, {}, [x for x in os.listdir(os.path.dirname(__file__)) if x.count('.') < 1])

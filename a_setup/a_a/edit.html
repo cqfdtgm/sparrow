@@ -1,0 +1,63 @@
+﻿## 0_setup/user/default.html
+<%inherit file="index.html" />
+
+${parent.body()}
+
+<%block name="js">
+<script type="text/javascript">
+    $(function(){
+	$('#dg').datagrid({
+	    //height:360
+	    //,
+	    url:'Get?_table=${_table}'
+	    //,columns:columns
+	    ,singleSelect: true
+	    //,height:360
+	    ,onSelect: function(index, row) {
+		$('#dg1').edatagrid( {
+		url: "Get?_table=${_table}&_table_az=_table_az"
+		,queryParams: {${_real_table}: row.id}
+		,destroyUrl: 'Destroy?_table=${_table}&_table_az=_table_az'
+		,singleSelect: false
+		,idField: 'id'
+		,toolbar: [ {iconCls:'icon-remove', text:'删除', handler: rf1 } ]
+		});
+		$('#dg2').edatagrid( {
+		url: "Get?_table=${_table}&_table_az=_table_z&notin="+row.id
+		,queryParams: { notin: row.id}  //当需要排除法来选取Z端时的参数
+		,destroyUrl: 'Save?_table=${_table}&_table_az=_table_z&ida='+row.id
+		,singleSelect: false
+		,idField:'id'
+		,toolbar: [ {iconCls:'icon-add', text:'增加', handler:rf2 } ]
+		});
+		//$.messager.show({msg:$('#dg2').datagrid('options')});
+	    }
+
+	});
+    });
+</script>
+</%block>
+
+<%block name="dg2">
+<div style="float:right;width:48%" align="right">
+    <table id="dg2" class="easyui-datagrid" title="${_table_z}-未分配"  data-options="
+    width:'100%%',
+    rownumbers:true, singleSelect:true, pagination:true, pageSize:10 " >
+    <thead><tr>
+	<th field="ck" checkbox="true"></th>
+        <th field="id" >id</th>
+        <th field="kind" >分类</th>
+        <th field="name" >名称</th>
+        ##<th field="org" >组织名称</th>
+        <th field="demo" >描述</th>
+    </tr></thead>
+    <tbody>
+    ##    %for rec in auth['rows']:
+    ##        <tr><td>${rec['id']}</td><td>${rec['kind']}</td></tr>
+    ##    %endfor
+    </tbody>
+</table>
+</div> 
+ 
+</%block>
+

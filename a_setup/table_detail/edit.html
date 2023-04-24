@@ -1,0 +1,15 @@
+﻿## 0_setup/user/default.html
+<%inherit file="index.html" />
+
+## ${parent.body()}
+
+<%block name="toolbutton">
+    ## 以下部分可以考虑单列一个edit_menu.html的菜单文件, 用include的方式包含进来.
+    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="javascript:newBook()">增加</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-more" plain="true" onclick="javascript:moreBook()">显示全部</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="javascript:editBook()">修改</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:replyBook()">回复</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false" data-options="disabled:true" >删除</a>
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false" data-options="disabled:true" >导入</a>
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false" data-options="disabled:true" >导出</a>
+</%block>

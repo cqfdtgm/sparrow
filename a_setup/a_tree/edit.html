@@ -1,0 +1,107 @@
+﻿## 0_setup/user/default.html
+<%inherit file="index.html" />
+
+${parent.body()}
+
+<%block name="js">
+<script type="text/javascript">
+        $(function(){
+            $('#dg').datagrid({
+		url:'Get?_table=${_table}'
+		,height: 360
+		,onSelect: function(index, row) {
+		    //$('#tr1').removeClass('tree');
+		    $('#tr1').tree( {
+			url:"Tree?_table=${_table}&_table_az=_table_az"
+			,queryParams: {${_table_a}: row.id}
+			,method: "post"
+			,cascadeCheck:false
+			,checkbox: true
+			,destroyUrl: "Destroy?_table=${_table}&_table_az=_table_az&${_table_a}="+row.id
+			,onBeforeEdit : function(node) {
+			    return false }
+			,onBeforeCheck: function(node, checked) {
+			    return eval(node.checkallow);
+			    }
+		    });
+		    //$('#tr2').removeClass('etree');
+		    $('#tr2').tree( {
+			url:"Tree?_table=${_table}&_table_az=_table_z"
+			,queryParams: {${_table_a}: row.id
+			    ,depth:2
+				,notin: true}
+			,method: "post"
+			,checkbox:true
+			,cascadeCheck:false
+			,destroyUrl: "Save?_table=${_table}&_table_az=_table_z&${_table_a}="+row.id
+			,onBeforeEdit: function(node) {
+			    return false }
+			,onBeforeCheck: function(node, checked) {
+			    return eval(node.checkallow);
+			    }
+		    });
+		}
+            });
+        });
+    function rf1() {
+	var ids = $('#tr1').tree('getChecked');
+	if (ids.length>0) {
+	    var delid = new Array();
+	    for (i in ids)	{
+		delid.push(ids[i].id); }
+	    //delid = delid.join(',');
+	    //$.getJSON("Destroy",{id:delid}, function(json, status, jqr) {
+	    $.getJSON($('#tr1').tree('options').destroyUrl,{id:delid}, function(json, status, jqr) {
+		    if (status="success") {
+			//alert ('成功删除');
+			$('#tr1').tree('reload');
+			$('#tr2').tree('reload');
+		    }
+		    } );
+	}
+	else { return false; }
+    };
+    function rf2() {
+	// 可以考虑在此种对"不可重复"与"可重复"进行区别处理.
+	// 先取得不可重复与可重复的配置参数,
+	// 至少需要选择一条数据.
+	// 不可重复:
+	//  tr1如果已经有数据, 则不允许选择, 必须先删除.
+	//  只能选择最多1条数据 
+	var ids = $('#tr2').tree('getChecked');
+	if ( ids.length<1) 
+	    { $.messager.show({title:'不可重复', msg:'未选中数据'}); 
+	    return false; 
+	    }
+	//$.messager.show({title:'不可重复', msg:ids.length});
+	var repeat = "${_at_add1}";	// 是否重复
+	if (repeat=="不可重复") {
+	    //alert('不可重复');
+	    var leftTree = $('#tr1').tree('getRoots');
+	    if (leftTree.length>0 ) 
+	    { $.messager.show({title:'不可重复', msg:'必须先删除左侧数据'}); 
+	    return false; 
+	    }
+	    if (ids.length>1) 
+	    { $.messager.show({title:'不可重复', msg:'只能选中一个节点'}); 
+	    return false; }
+	}
+	//else { alert('可重复'); }
+	if (ids.length>0)	{ 
+	    var addid = new Array();
+	    for ( i in ids) {
+		addid.push(ids[i].id); }
+	    //addid = addid.join(',');
+	    //$.getJSON('Save', {id:addid}, function(data, status, jqr) {
+	    $.getJSON($('#tr2').tree('options').destroyUrl, {id:addid}, function(data, status, jqr) {
+		    if (status="success") {
+			//alert ('成功增加');
+			$('#tr2').tree('reload');
+			$('#tr1').tree('reload');
+			}
+		    } );
+	}
+    };
+    </script>
+</%block>
+

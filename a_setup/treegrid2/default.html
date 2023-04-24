@@ -1,0 +1,46 @@
+﻿## 0_setup/index.html
+<%inherit file="log.html" />
+## treegrid的现场修改版本，适合于各字段都是数字的情况
+${parent.body()}
+
+<%block name="js">
+<script type="text/javascript">
+       $(function(){
+            $('#dg').treegrid({
+		url:'Get?_table=${_table}'
+		,updateUrl: 'Update?_table=${_table}'
+		,toolbar: '#toolbar'
+		//,queryParams: {'depth': 1}
+		,lines:true
+		,idField: 'id'
+		,treeField: 'id'
+		//,onLoadSuccess: function() {	//这个也对第二页不能展开起到帮助
+		//    delete $(this).treegrid('options').queryParams['id'];
+		//}
+		, onDblClickRow: function(row) {
+		    //moreBook(row);
+		    //$('#dg').treegrid('beginEdit', row.id);
+		    edit();
+		    }
+		, onExpand: function(row) {
+		    $(this).datagrid('autoSizeColumn', 'id');
+		}
+            });
+        });
+</script>
+</%block>
+
+<%block name="toolbutton">
+##<div id="toolbar">
+    ## 以下部分可以考虑单列一个edit_menu.html的菜单文件, 用include的方式包含进来.
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="javascript:newBook()">增加</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-more" plain="true" onclick="javascript:moreBook()">显示全部</a>
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="javascript:editBook()">修改</a>
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:replyBook()">回复</a>
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false">删除</a>
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false">导入</a>
+    ##<a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false">导出</a>
+## </div>
+</%block>
+
+
