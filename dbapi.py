@@ -73,9 +73,9 @@ class Database(abc.ABC):
         # print('connect @ abc..', self.connect)
         if '_con' not in self.__dict__:
             # print('con:', self._connect, self._connect_str)
-            self.__dict__['_con'] = self.__class__._connect(self._connect_str)
+            self.__dict__['connect'] = self.__class__._connect(self._connect_str)
             # self._con.autocommit == self._autocommit
-        return self.__dict__['_con']
+        return self.__dict__['connect']
 
     @property
     def cursor(self):
