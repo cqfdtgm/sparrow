@@ -37,8 +37,10 @@ def init(db_type, connect_str, _debug=True, _autocommit=True):
 
 class Database(abc.ABC):
     """A class to access database, define CRUD
-    只提供简单的CRUD接口，和commit, rollback, begin接口，默认自动提交，事务由调用者控制。
-    SQL保留字不能用作表名或者字段名：select, insert, delete, update, commit, begin, rollback, count, 所以这些方法可以不加下划线。
+    只提供简单的CRUD接口，和commit, rollback, begin接口，默认自动提交 ，
+    事务由调用者控制。
+    SQL保留字不能用作表名或者字段名：select, insert, delete, update, commit,
+    begin, rollback, count, 所以这些方法可以不加下划线。
     如何防范ＳＱＬ注入？
     """
 
@@ -362,8 +364,7 @@ class TestPostgresql(CommTest):
         execute = self.db.execute
         # execute = self.db.cursor.execute
         print('drop', execute("""drop table if exists tmp_users"""))
-        result = execute("""create table if not exists tmp_users(id serial primary key, 
-            name varchar(100), age int, price decimal(10,2) ) """)
+        result = execute("""create table if not exists tmp_users(id serial primary key, name varchar(100), age int, price decimal(10,2) ) """)
         print('create: ', result)
 
 
@@ -379,5 +380,4 @@ class TestSqlite3(CommTest):
         self.db = init('sqlite3', 'test.sqlite3', _debug=True)
         execute = self.db.execute
         execute("""drop table if exists tmp_users""")
-        execute("""create table if not exists tmp_users(id integer primary key autoincrement, 
-            name varchar(100), age int, price decimal(10,2) ) """)
+        execute("""create table if not exists tmp_users(id integer primary key autoincrement, name varchar(100), age int, price decimal(10,2) ) """)
