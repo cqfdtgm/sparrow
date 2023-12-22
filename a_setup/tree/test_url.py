@@ -1,5 +1,4 @@
 # import cherrypy
-# import os
 # import os.path
 # import pytest
 import requests
@@ -9,9 +8,9 @@ import requests
 
 from ... import dbapi
 from ... import private
-from .. import default
+# from .. import default
 
-baseurl = 'http://136.21.225.176:8123/'
+baseurl = 'http://localhost:8123/'
 baseurl += 'a_setup/tree/'
 
 
@@ -26,9 +25,10 @@ class TestUrl:
 
         print('是每运行一个测试，就要运行一次本函数？')
         self.baseurl = baseurl
-        self.db = dbapi.init(*private.conn_pg15, _debug=False)
+        self.db = dbapi.init(*private.conn_sqlite_1)
         self.db.execute("drop table if exists test_org")
-        self.db.execute("""create table test_org (	id serial primary key , text varchar(200), 
+        self.db.execute("""create table test_org (id integer primary key autoincrement NOT NULL
+        , text varchar(200), 
         parentid integer not null, state varchar(20), display integer) """)
         self.db.commit()
 
@@ -56,8 +56,8 @@ class TestUrl:
 
     def test_insert2(self):
         """播放共4个记录，tree返回的会是无total的列表"""
-        r = requests.get(self.baseurl + 'insert?table=test_org&parentId=0')
-        r = requests.get(self.baseurl + 'insert?table=test_org&parentId=0')
+        requests.get(self.baseurl + 'insert?table=test_org&parentId=0')
+        requests.get(self.baseurl + 'insert?table=test_org&parentId=0')
         r = requests.get(self.baseurl + 'insert?table=test_org&parentId=0')
         dct = r.json()
         print('dct:', dct)
@@ -104,27 +104,27 @@ class TestUrl:
         """拖拽测试，分为append, button, top"""
 
         # 将11拖到10之后，会因数量限制失败
-        r = requests.get(self.baseurl + 'dnd?table=test_org&id=11&targetId=10&point=buttom')
+        r = requests.get(self.baseurl + 'dnd?table=test_org&id=11&targetid=10&point=buttom')
         dct = r.json()
         assert dct['isError'] is True, "根目录已满"
-        r = requests.get(self.baseurl + 'dnd?table=test_org&id=10&targetId=1&point=append')
+        r = requests.get(self.baseurl + 'dnd?table=test_org&id=10&targetid=1&point=append')
         dct = r.json()
         assert dct['isError'] is True, "节点1下级已满"
-        r = requests.get(self.baseurl + 'dnd?table=test_org&id=10&targetId=11&point=top')
+        r = requests.get(self.baseurl + 'dnd?table=test_org&id=10&targetid=11&point=top')
         dct = r.json()
         assert dct['isError'] is True, "节点1下级已满"
 
     def test_dnd2(self):
         """同级拖动，改变显示顺序"""
 
-        r = requests.get(self.baseurl + 'dnd?table=test_org&id=12&targetId=14&point=top')
+        r = requests.get(self.baseurl + 'dnd?table=test_org&id=12&targetid=14&point=top')
         dct = r.json()
         assert dct['success'] is True, "将12拖到14前面"
-        r = requests.get(self.baseurl + 'dnd?table=test_org&id=11&targetId=13&point=button')
+        r = requests.get(self.baseurl + 'dnd?table=test_org&id=11&targetid=13&point=button')
         dct = r.json()
         assert dct['success'] is True, "将11拖到13后面"
-        r = requests.get(self.baseurl + 'delete?table=test_org&id=20')
-        r = requests.get(self.baseurl + 'dnd?table=test_org&id=15&targetId=1&point=append')
+        requests.get(self.baseurl + 'delete?table=test_org&id=20')
+        r = requests.get(self.baseurl + 'dnd?table=test_org&id=15&targetid=1&point=append')
         dct = r.json()
         assert dct['success'] is True, "将15拖到1下面（追加，会放在最后）"
         dct = requests.get(self.baseurl + 'tree?page=1&table=test_org&id=1').json()
@@ -136,10 +136,10 @@ class TestUrl:
 
     def test_dnd3(self):
         """拖动到其他节点下级，显示顺序会是最后一个；拖动到其他父节点下的某个子节点后面或前面，显示顺序会在其之后或之前"""
-        requests.get(self.baseurl + 'dnd?table=test_org&id=3&targetId=2&point=append')
-        requests.get(self.baseurl + 'dnd?table=test_org&id=4&targetId=2&point=append')
-        requests.get(self.baseurl + 'dnd?table=test_org&id=5&targetId=4&point=top')
-        requests.get(self.baseurl + 'dnd?table=test_org&id=6&targetId=4&point=buttom')
+        requests.get(self.baseurl + 'dnd?table=test_org&id=3&targetid=2&point=append')
+        requests.get(self.baseurl + 'dnd?table=test_org&id=4&targetid=2&point=append')
+        requests.get(self.baseurl + 'dnd?table=test_org&id=5&targetid=4&point=top')
+        requests.get(self.baseurl + 'dnd?table=test_org&id=6&targetid=4&point=buttom')
         dct = requests.get(self.baseurl + 'tree?page=1&table=test_org&id=2').json()
         print('dct: dnd3', dct)
         assert [item['id'] for item in dct] == [3, 5, 4, 6]
@@ -168,8 +168,8 @@ class TestUrl:
         assert r.status_code == 200
         assert r.json()['isError'] is True, "必须先删除下级节点"
 
-    def test_delete2(self, id=9):
+    def test_delete3(self, id=9):
         """带id"""
         r = requests.get(self.baseurl + 'delete?id=%s&table=test_org' % id)
         assert r.status_code == 200
-        assert r.json()['success'] is True,"删除节点成功"
+        assert r.json()['success'] is True, "删除节点成功"

@@ -1,5 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-# $Header: C:\\RCS\\D\\dragonfly\\0_setup\\atable\\__init__.py,v 1.0 2017-04-27 10:35:24+08 $
+# $Header: C:\\RCS\\D\\dragonfly\\0_setup\\table\\__init__.py,v 1.0 2017-04-27 10:35:24+08 $
 
 import os
 from .. import default

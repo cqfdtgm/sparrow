@@ -1,16 +1,16 @@
 ﻿# -*- coding: utf-8 -*-
-# $Header: C:\\RCS\\D\\dragonfly\\0_setup\\atable\\__init__.py,v 1.0 2017-04-27 10:35:24+08 $
+# $Header: C:\\RCS\\D\\dragonfly\\0_setup\\table\\__init__.py,v 1.0 2017-04-27 10:35:24+08 $
 
 import os
 # import cfg
-from .. import default as pardefault
+from .. import default as parent
 # , tools, sparrow, private, dbapi2
 
 name = 'A单表设置'
 
 
-class default(pardefault):
-    dirs = [os.path.dirname(__file__)] + pardefault.dirs
+class default(parent):
+    dirs = [os.path.dirname(__file__)] + parent.dirs
     table = 'cfg_tables'
 
     def __init__(self, *k, **kw):
@@ -34,16 +34,8 @@ class default(pardefault):
                 kw['name'] = '%'+kwq+'%'
             else:
                 kw['name_zh'] = '%' + kwq+'%'   # 否则按中文名
-        print('k kw @ 0_setup.atable.Get', k, kw)
+        print('k kw @ 0_setup.table.Get', k, kw)
         return super(default, self).select(*k, **kw)
 
 
 __import__(__name__, {}, {}, [x.split('.')[0] for x in os.listdir(__name__.replace('.', os.sep))])
-
-# $Log: __init__.py,v $
-# Revision 1.0  2017-04-27 10:35:24+08  u????ү
-# Initial revision
-#
-# Revision 1.0  2015-09-25 10:19:30+08  tgm
-# Initial revision
-#

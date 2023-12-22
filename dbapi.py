@@ -25,14 +25,18 @@ import sqlite3
 # from . import private
 
 
-def init(db_type, connect_str, _debug=True, _autocommit=True):
+def init(db_type, connect_str: str, debug: bool = True, autocommit: bool = True) -> "Database":
     """返回由db_type指定类型，connect_str指定具体连接的数据库对象
     目前本文件中定义了以下db_type及连接字符串格式:
     sqlite3, test.sqlite3
+    :type db_type: str
+    :type connect_str: str
+    :type debug: bool
+    :type autocommit: bool
     """
 
     db_type = db_type.capitalize()  # 首字母大写以符合类名规范
-    return globals()['Database' + db_type](connect_str, _debug, _autocommit)
+    return globals()['Database' + db_type](connect_str, debug, autocommit)
 
 
 class Database(abc.ABC):
@@ -44,16 +48,16 @@ class Database(abc.ABC):
     如何防范ＳＱＬ注入？
     """
 
-    _param_style = ""
-    _limit = ""
+    param_style: str = ""
+    limit: str = ""
     # _limit_0 = ""
-    _connect = None
+    connect_method: callable = None
 
-    def __init__(self, _connect_str, _debug, _autocommit):
-        print('init in Database:', _connect_str, _debug, _autocommit)
-        self._connect_str = _connect_str
-        self._debug = _debug
-        self._autocommit = _autocommit
+    def __init__(self, connect_str: str, debug: bool, autocommit: bool):
+        print('init in Database:', connect_str, debug, autocommit)
+        self.connect_str = connect_str
+        self.debug = debug
+        self.autocommit = autocommit
 
     def __del__(self):
         self.commit()
@@ -61,7 +65,7 @@ class Database(abc.ABC):
             self.cursor.close()
             self.connect.close()
 
-    def __getattr__(self, table):
+    def __getattr__(self, table: str):
         """未访问过的表，会将其字段结构取来，作为类的属性，该表用select返回的类cur对象表示"""
         if not table.startswith('_'):
             table_class = self.select(table, rows=0)
@@ -73,25 +77,29 @@ class Database(abc.ABC):
         """只在访问该属性才才建立连接，并设为属性，避免二次连接i"""
 
         # print('connect @ abc..', self.connect)
-        if '_con' not in self.__dict__:
-            # print('con:', self._connect, self._connect_str)
-            self.__dict__['_con'] = self.__class__._connect(self._connect_str)
-            # self._con.autocommit == self._autocommit
-        return self.__dict__['_con']
+        if '_connect' not in self.__dict__:
+            # print('con:', self.connect_method, self.connect_str)
+            self.__dict__['_connect'] = self.__class__.connect_method(self.connect_str)
+            self.__dict__['_connect'].autocommit = self.autocommit
+        return self.__dict__['_connect']
 
     @property
     def cursor(self):
         """只在需要时才建立游标，并设为属性，避免二次建立 """
 
-        if 'cursor' not in self.__dict__:
-            self.__dict__['cursor'] = self.connect.cursor()
-        return self.__dict__['cursor']
+        if '_cursor' not in self.__dict__:
+            self.__dict__['_cursor'] = self.connect.cursor()
+        return self.__dict__['_cursor']
+
+    def begin(self):
+        """sqlite3 没有事务控制？"""
+        self.cursor.begin()
 
     def commit(self):
-        if '_con' in self.__dict__:
-            self.connect.commit()
+        self.connect.commit()
 
-    def select(self, table, column="*", rows=10, page=1, order="", **kw):
+    def select(self, table: str, column: str = "*", rows: int = 10, page: int = 1,
+               order: str = "", **kw: dict[str, str]) -> dict:
         """select data from database
         这些参数尽量用下划线，是为了防止与表名相冲突
         order: 每个数据库的实现不一样,格式为“order by col1 [asc|desc], col2[asc|desc]”
@@ -102,12 +110,12 @@ class Database(abc.ABC):
         """
 
         start = (page-1) * rows
-        limit = self._limit % locals()
+        limit = self.limit % locals()
         if order:
             order = "order by " + order
         sql = "select %(column)s from %(table)s %(wheres)s %(order)s" \
               "%(limit)s"
-        # print('locat @ dbapi.select:', locals())
+        # print('locals @ dbapi.select:', locals())
         wheres, values = self.where(**kw)
         sql = sql % locals()
         # print('kw:', kw, wheres, values)
@@ -115,13 +123,15 @@ class Database(abc.ABC):
         result = dict()
         result['data'] = cur.fetchall()
         result['desc'] = cur.description
-        result['description'] = cur.description
-        result['columns'] = [i[0].lower() for i in cur.description]
+        # sqlite3 的结果中，字段总会以大写字母方式表示，也要转变为小写。
+        # 是否在模板文件中转为小写更为方便和统一?
+        result['desc'] = [[i[0].lower()] + list(i[1:]) for i in cur.description]
+        result['columns'] = [i[0] for i in result['desc']]
         result['rows'] = [dict(zip(result['columns'], i)) for i in result['data']]
         result['rowcount'] = len(result['data'])
         return result
 
-    def count(self, table, page=1, rows=10, order='', **kw):
+    def count(self, table, page=1, rows=10, order='', **kw) -> int:
         """统计kw条件的记录数量，用于select返回total值，客户端展示分页"""
 
         wheres, values = self.where(**kw)
@@ -132,7 +142,7 @@ class Database(abc.ABC):
         # print('count:', result)
         return result
 
-    def max(self, table, column, **kw):
+    def max(self, table, column='id', **kw) -> int:
         """统计kw条件的column字段最大值"""
 
         wheres, values = self.where(**kw)
@@ -142,17 +152,17 @@ class Database(abc.ABC):
         # print('max:', result)
         return result
 
-    def insert(self, table, **kw):
+    def insert(self, table, **kw) -> int:
         """返回新插入的记录的id"""
 
         sql = "insert into %(table)s (%(columns)s) values (%(values)s)"
         columns = ",".join(kw.keys())
-        values = ",".join([self._param_style] * len(kw))
+        values = ",".join([self.param_style] * len(kw))
         sql = sql % locals()
         cur = self.execute(sql, list(kw.values()))
         return cur.fetchall()[0][0]
 
-    def delete(self, table, id):
+    def delete(self, table, id) -> int:
         """返回受影响的行数"""
 
         sql = "delete from %(table)s where id=%(id)s"
@@ -160,41 +170,36 @@ class Database(abc.ABC):
         result = self.execute(sql, [])
         return result.rowcount
 
-    def update(self, table, id, **kw):
-        """返回更新成功的受影响的行数"""
+    def update(self, table, id, **kw) -> int:
+        """返回更新成功的行数"""
 
         sql = "update %(table)s set %(changes)s where id=%(id)s"
-        changes = ",".join(" %s=%s " % (column, self._param_style)
+        changes = ",".join(" %s=%s " % (column, self.param_style)
                            for column in kw)
         sql = sql % locals()
         result = self.execute(sql, list(kw.values()))
         return result.rowcount
 
-    def where(self, **kw):
+    def where(self, **kw) -> tuple[str, list]:
         wheres, values = ['1=1'], []
         for column, value in kw.items():
             if isinstance(value, str):
                 if '%' in value:
-                    wheres.append("%s like %s" % (column, self._param_style))
+                    wheres.append("%s like %s" % (column, self.param_style))
                     values.append(value)
                 else:
-                    wheres.append("%s = %s" % (column, self._param_style))
+                    wheres.append("%s = %s" % (column, self.param_style))
                     values.append(value)
             elif isinstance(value, int):
-                wheres.append("%s = %s" % (column, self._param_style))
+                wheres.append("%s = %s" % (column, self.param_style))
                 values.append(value)
             elif isinstance(value, (list, tuple)):
                 if value[0] in ('>', '<', '>=', '<='):
-                    wheres.append("""%s %s %s""" % (column, value[0], self._param_style))
+                    wheres.append("""%s %s %s""" % (column, value[0], self.param_style))
                     values.append(value[1])
                 else:   # in , not in, is null, is not null...
                     raise
         wheres = " where " + " and ".join(wheres)
-        """if wheres:
-            wheres = " where " + ' and '.join(wheres)
-        else:
-            wheres = ''
-            """
         return wheres, values
 
     def execute(self, sql, values=()):
@@ -203,8 +208,8 @@ class Database(abc.ABC):
         要在本处套一层，是为了方便行云的处理。行云需要通过队列在其他进程中执行，而且只能返回一个类cur的东西。
         """
 
-        if self._debug:
-            print(self._debug, 'SQL @ execute: ', sql, values, self.__class__.__name__)
+        if self.debug:
+            print(self.debug, 'SQL @ execute: ', sql, values, self.__class__.__name__)
         assert ';' not in sql   # 防范SQL注入
         cur = self.cursor
         cur.execute(sql, values)
@@ -214,11 +219,11 @@ class Database(abc.ABC):
 class DatabasePostgresql(Database):
     """继承自Database, 具体指定了数据库类型为postgresql"""
 
-    _param_style = '%s'
-    _limit = " limit %(rows)s offset %(start)s "     # pgsql分页子句 limit rows offset pages , 其中offset子句可省略，
+    param_style = '%s'
+    limit = " limit %(rows)s offset %(start)s "     # pgsql分页子句 limit rows offset pages , 其中offset子句可省略，
     # 省略时其默认为offset 0，表示从第1条记录开始。rows参数表示限制输出行数，即每页记录数。多页时，page应是（页数－1）乘以每页行数
-    # _limit_0 = _limit % {'rows': 0, 'start': 0, 'page': 0}
-    _connect = psycopg2.connect
+    # _limit_0 = limit % {'rows': 0, 'start': 0, 'page': 0}
+    connect_method = psycopg2.connect
 
     def autocommit(self):
         self.connect.autocommit = True
@@ -233,11 +238,11 @@ class DatabasePostgresql(Database):
             return lastrowid
 
     def insert(self, table, **kw):
-        """通过添加reuturnging id来现场返回id"""
+        """通过添加returning id来现场返回id"""
 
         sql = "insert into %(table)s (%(columns)s) values (%(values)s) returning id"
         columns = ",".join(kw.keys())
-        values = ",".join([self._param_style] * len(kw))
+        values = ",".join([self.param_style] * len(kw))
         sql = sql % locals()
         cur = self.execute(sql, list(kw.values()))
         return cur.fetchall()[0][0]
@@ -245,20 +250,21 @@ class DatabasePostgresql(Database):
 
 class DatabaseSqlite3(Database):
 
-    _param_style = '?'
-    _limit = " limit %(start)s, %(rows)s "
-    # _limit_0 = _limit % {'rows': 0, 'start': 0, 'page': 0}
-    _connect = sqlite3.connect
+    param_style = '?'
+    limit = " limit %(start)s, %(rows)s "
+    # _limit_0 = limit % {'rows': 0, 'start': 0, 'page': 0}
+    connect_method = sqlite3.connect
 
     def insert(self, table, **kw):
         """返回新插入的记录的id"""
 
         sql = "insert into %(table)s (%(columns)s) values (%(values)s)"
         columns = ",".join(kw.keys())
-        values = ",".join([self._param_style] * len(kw))
+        values = ",".join([self.param_style] * len(kw))
         sql = sql % locals()
         cur = self.execute(sql, list(kw.values()))
-        return cur.lastrowid
+        return self.cursor.lastrowid
+        # return cur.lastrowid
 
 
 # 本文件与框架无关，所以可能单独进行单元测试
@@ -352,19 +358,20 @@ class CommTest(abc.ABC):
         assert rec == 0
 
 
-class TestPostgresql(CommTest):
+class BBTestPostgresql(CommTest):
     """postgresql数据接口的测试用例，主要测试CRUD操作"""
 
     def setup_class(self):  # 在开始测试之前进行的准备工作
         print('\ninit to test...', self.__class__.__name__)
         # from . import private
         import private
-        self.db = init(*private.conn_pg15, _debug=False)
-        # self.db._begin()
+        self.db = init('DatabasePostgresql', private.conn_pg15, debug=True, autocommit=True)
+        # self.db.begin()
         execute = self.db.execute
         # execute = self.db.cursor.execute
         print('drop', execute("""drop table if exists tmp_users"""))
-        result = execute("""create table if not exists tmp_users(id serial primary key, name varchar(100), age int, price decimal(10,2) ) """)
+        result = execute("""create table if not exists tmp_users(id serial primary key, \
+        name varchar(100), age int, price decimal(10,2) ) """)
         print('create: ', result)
 
 
@@ -377,7 +384,13 @@ class TestSqlite3(CommTest):
 
     def setup_class(self):  # 在开始测试之前进行的准备工作
         print('\ninit to sqlite3 test...')
-        self.db = init('sqlite3', 'test.sqlite3', _debug=True)
+        self.db = init('sqlite3', 'test.sqlite3', debug=True)
         execute = self.db.execute
         execute("""drop table if exists tmp_users""")
-        execute("""create table if not exists tmp_users(id integer primary key autoincrement, name varchar(100), age int, price decimal(10,2) ) """)
+        execute("""create table if not exists tmp_users(id integer primary key autoincrement
+        , name varchar(100), age int, price decimal(10,2) ) """)
+
+    def teardown_class(self):
+        # self.db.execute('drop table if exists tmp_users')
+        self.db.cursor.close()
+        self.db.connect.close()

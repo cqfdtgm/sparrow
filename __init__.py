@@ -20,8 +20,7 @@ mako.runtime.UNDEFINED = 'UNDEFINED'
 name = 'homepage'
 
 
-# noinspection PyPep8Naming
-class default(object):
+class default:
     exposed = True
     file = __file__
     dirs = [os.path.dirname(__file__)]
@@ -33,7 +32,7 @@ class default(object):
     template_methods = ['default', 'login', 'log', 'users', 'debug', 'edit']
     setup_methods = ['_test', '_src']       # 系统方法，原样返回
     # db_type, connect_str = private.conn_sqlite_1
-    db_type, connect_str = private.conn_pg15
+    db_type, connect_str = private.conn_sqlite_1
 
     def __del__(self):
         # if 'db' in self.__dict__:
@@ -48,7 +47,7 @@ class default(object):
         self.k, self.kw = k, kw
         self.dct = sparrows.dct.copy()
         self.dct['table'] = self.table = kw.pop('table', self.table)
-        self.dct['table_class'] = getattr(self.db, self.dct['table'])
+        # self.dct['table_class'] = getattr(self.db, self.dct['table'])
         self.dct['sparrow'] = sparrows
         self.dct['_sess'] = self.sess = sparrows.Session()
 
@@ -67,6 +66,7 @@ class default(object):
             cherrypy.response.headers['Expires'] = '0'
             yield json.dumps(result, default=tools.decimal_default)
         elif func in self.template_methods:
+            self.dct['table_class'] = getattr(self.db, self.dct['table'])
             yield TemplateLookup(self.dirs).get_template(func + '.html').render(**self.dct)
         elif func in self.setup_methods:
             result = getattr(self, func)(*self.k[1:], **self.kw)
@@ -75,9 +75,9 @@ class default(object):
     @property
     def db(self):
         # 用property的方式实现在访问self.db时，才初始化数据库，部分实现惰性连接
-        if 'db' not in self.__dict__:
-            self.__dict__['db'] = dbapi.init(self.db_type, self.connect_str)
-        return self.__dict__['db']
+        if '_db' not in self.__dict__:
+            self.__dict__['_db'] = dbapi.init(self.db_type, self.connect_str)
+        return self.__dict__['_db']
 
     @staticmethod
     def _src(path=__file__):
@@ -124,34 +124,34 @@ class default(object):
         self.db.delete(self.dct['table'], id)
         return dict(success=True)
 
-    def dnd(self, id="", targetId="", point="", max_children=3):
+    def dnd(self, id="", targetid="", point="", max_children=3):
         """
         将树形结构下的一个整体结点，拖动到另一个节点下面
             id: 被移动的节点ID
-            targetId: 目标节点
+            targetid: 目标节点
             point: 在目标节点的布放方式， append: 追加作为其第一子节点，bottom: 同级，在其后插入；top:同级，在其前插入
         在tree类表考虑包含path, level字段的情况下，dnd方法相对较复杂。可以从简单入手。
         """
 
-        parentId = targetId if point == 'append' else self.db.select(self.table, id=targetId)['rows'][0]['parentid']
+        parentid = targetid if point == 'append' else self.db.select(self.table, id=targetid)['rows'][0]['parentid']
         rec_old = self.db.select(self.table, id=id)['rows'][0]     # 保存原记录的字段值
-        if self.db.count(self.table, parentid=parentId) >= max_children and rec_old['parentid'] != parentId:
+        if self.db.count(self.table, parentid=parentid) >= max_children and rec_old['parentid'] != parentid:
             return {'isError': True, 'msg': "目标节点下级数量已达限制", 'success': False}
         if point == "append":
-            display = self.db.max(self.table, 'display', parentid=targetId) + 1
+            display = self.db.max(self.table, 'display', parentid=targetid) + 1
         else:
-            target = self.db.select(self.table, id=targetId)['rows'][0]
+            target = self.db.select(self.table, id=targetid)['rows'][0]
             for r in self.db.select(self.table, parentid=target['parentid'], display=['>', target['display']])['rows']:
                 # display字段有个隐含BUG: 不停地向上加，时间久远后，有可能某天该字段整数上溢...
                 self.db.update(self.table, r['id'], display=r['display'] + 1)
             if point == 'top':  # 搬动目标节点的后续节点后，如果是前插，目标节点的显示顺序也要加1
                 display = target['display']
-                self.db.update(self.table, targetId, display=target['display'] + 1)
+                self.db.update(self.table, targetid, display=target['display'] + 1)
             else:
                 display = target['display'] + 1
-            targetId = target['parentid']   # 如果不是追加，父节点其实是目标节点的父节点
-        self.db.update(self.table, targetId, state='closed')  # 父节点设置为可展开状态。
-        self.db.update(self.table, id, parentid=targetId, display=display)
+            targetid = target['parentid']   # 如果不是追加，父节点其实是目标节点的父节点
+        self.db.update(self.table, targetid, state='closed')  # 父节点设置为可展开状态。
+        self.db.update(self.table, id, parentid=targetid, display=display)
         sons = self.db.count(self.table, parentid=rec_old['parentid'])  # 原父节点如果没有后继了，设置为不可展开状态(open)
         if not sons:
             self.db.update(self.table, rec_old['parentid'], state='open')
@@ -161,8 +161,8 @@ class default(object):
         """插入新记录，成功的话，返回新记录的字典"""
 
         kw.pop('isNewRecord', 'true')  # easyui 的框架在新增时会传这个参数
-        newid = self.db.insert(self.dct['table'], **kw)
-        res = self.db.select(self.dct['table'], id=newid)
+        new_id = self.db.insert(self.dct['table'], **kw)
+        res = self.db.select(self.dct['table'], id=new_id)
         return res['rows'][0]
 
     def select(self,  sort="", order="", rows=10, page=1, *k, **kw):
@@ -174,7 +174,7 @@ class default(object):
             # easyui的sort: 逗号分隔的字段列表, order: 字段分隔的"asc","desc"列表。
             c = zip(sort.split(','), order.split(','))
             order = ','.join(' '.join(d) for d in c)
-        # print('locas @ sparrow.select:', locals())
+        # print('locals @ sparrow.select:', locals())
         result = self.db.select(self.dct['table'], order=order, rows=rows, page=page, **kw)
         res = {'rows': result['rows'], 'total': len(result['rows']), 'pagesize': rows, 'pagenumber': page}
         if page > 1 or res['total'] == rows:
@@ -198,7 +198,7 @@ class default(object):
             return recs
         else:
             return recs['rows']
-        """
+        """     当需要返回多级树形结构数据时，才会启用下面部分。
         result = []
         for r in recs['rows']:
             if r['id'] in ids:

@@ -19,7 +19,7 @@ rtd = os.environ.get('READTHEDOCS', None) == 'True'
 class MakoBridge(TemplateBridge):
     def init(self, builder, *args, **kw):
         self.jinja2_fallback = BuiltinTemplateLoader()
-        self.jinja2_fallback.init(builder, *args, **kw)
+        self.jinja2_fallback.init(builder, **kw)
 
         builder.config.html_context['site_base'] = builder.config['site_base']
 
