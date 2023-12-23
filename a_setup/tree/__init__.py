@@ -2,12 +2,12 @@
 # $Header: D:\\RCS\\E\\dragonfly\\0_setup\\0_config\\__init__.py,v 1.0 2015-09-25 10:19:30+08 tgm Exp tgm $
 
 import os
-from .. import default as parent_default
+from .. import default as parent
 
 name = 'Tree表设置'
 
 
-class default(parent_default):
+class default(parent):
     """tree表的基本字段要求　：id 自增主键        parentId 上级id
     text 名称     state 状态字段，有下级时为closed，无下级为open
     path 路径，可选字段，为点字符连接的从根（０）记录到本记录的路径
@@ -15,7 +15,7 @@ class default(parent_default):
     注意，初始中并不存在id为０的记录，但parentId=0表示本记录是顶层记录
     """
 
-    dirs = [os.path.dirname(__file__)] + parent_default.dirs
+    dirs = [os.path.dirname(__file__)] + parent.dirs
     table = 'org'
 
     MAX_CHILDREN = 10    # 下级数量限制，如果实现了翻页，下级数量不需要限制了。
