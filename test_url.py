@@ -1,6 +1,5 @@
 # import cherrypy
 # import os
-# import os.path
 # import pytest
 import requests
 # import sys
@@ -8,7 +7,7 @@ import requests
 # from cherrypy.test import helper
 
 
-baseurl = 'http://136.21.225.176:8123/'
+baseurl = 'http://localhost:8123/'
 
 
 class TestUrl:

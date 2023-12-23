@@ -3,12 +3,12 @@
 
 CREATE
     TABLE
-         if not exists CFG_TABLES (
-            ID INTeger primary key autoincrement NOT NULL ,
-            KIND VARCHAR(40) ,
-            NAME VARCHAR(100) ,
-            NAME_ZH VARCHAR(40) ,
-            DEMO VARCHAR(200) ,
+         if not exists cfg_tables (
+            id INTeger primary key autoincrement NOT NULL ,
+            kind VARCHAR(40) ,
+            name VARCHAR(100) ,
+            name_zh VARCHAR(40) ,
+            demo VARCHAR(200) ,
             NAME_A VARCHAR(20) ,
             NAME_Z VARCHAR(20) ,
             ADD1 VARCHAR(100) ,

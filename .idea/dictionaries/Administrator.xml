@@ -1,7 +1,13 @@
 <component name="ProjectDictionaryState">
   <dictionary name="Administrator">
     <words>
+      <w>checkallow</w>
+      <w>lastrowid</w>
+      <w>lastval</w>
+      <w>pagenumber</w>
       <w>parentid</w>
+      <w>staticdir</w>
+      <w>targetid</w>
     </words>
   </dictionary>
 </component>

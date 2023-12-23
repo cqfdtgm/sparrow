@@ -31,7 +31,7 @@ class Session(dict):
         return '{%s} not exists!' % key
 
     def __new__(cls, session_id=None):
-        """return a session instance, maybe a exists one"""
+        """return a session instance, maybe an exists one"""
 
         if "session_id" not in cherrypy.request.cookie:
             while session_id is None or session_id in cls.onlines:
