@@ -171,7 +171,7 @@ class Database(abc.ABC):
         return result.rowcount
 
     def update(self, table, id, **kw) -> int:
-        """返回更新成功的行数"""
+        """返回成功更新成功的行数"""
 
         sql = "update %(table)s set %(changes)s where id=%(id)s"
         changes = ",".join(" %s=%s " % (column, self.param_style)
