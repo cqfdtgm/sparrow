@@ -6,7 +6,7 @@ import os
 # 行云数据库配置参数，不加入GIT上传清单
 #   con_str = """host:port/dbname username password"""
 conn_xy = "cirrodata", "cirrordata:1803/BONC XC330001 H8646#r0"
-conn_pg15 = "postgresql", "host=localhost port=10123 user=postgres password=DRAGONFLY dbname=xc330001"
+conn_pg15 = "postgresql", "host=127.0.0.1 port=10123 user=postgres password=DRAGONFLY dbname=xc330001"
 conn_sqlite_1 = "sqlite3", os.sep.join([os.path.dirname(__file__), "test.sqlite3"])
 
 

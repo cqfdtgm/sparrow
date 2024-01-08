@@ -10,7 +10,7 @@ from ... import dbapi
 from ... import private
 # from .. import default
 
-baseurl = 'http://localhost:8123/'
+baseurl = 'http://127.0.0.1:8123/'
 baseurl += 'a_setup/tree/'
 
 

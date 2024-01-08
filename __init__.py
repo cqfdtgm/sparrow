@@ -23,15 +23,16 @@ name = 'homepage'
 class default:
     exposed = True
     file = __file__
-    dirs = [os.path.dirname(__file__)]
+    dirs = [os.path.dirname(__file__)]  # mako的模板搜索路径。子目录会把自己加在这个列表的前面。
     table = 'users'
 
+    # 返回json数据的方法列表，基本都是取自数据库
     json_methods = ['select', 'update', 'delete', 'insert', 'tree', 'pop',
-                    'directory', 'dnd']     # 返回json数据的方法列表，基本都是取自数据库
+                    'directory', 'dnd']
     # 返回模板内容的方法列表，目录下有同名的html文件
     template_methods = ['default', 'login', 'log', 'users', 'debug', 'edit']
     setup_methods = ['_test', '_src']       # 系统方法，原样返回
-    # db_type, connect_str = private.conn_sqlite_1
+    db_type, connect_str = private.conn_pg15
     db_type, connect_str = private.conn_sqlite_1
 
     def __del__(self):
@@ -44,12 +45,20 @@ class default:
         for key in list(kw.keys()):
             if key.endswith('[]'):
                 kw[key[:-2]] = kw.pop(key)
-        self.k, self.kw = k, kw
+            kw[key.lower()] = kw.pop(key)   # 把所有路径以及关键字转变为小写
+        self.k = [i.lower() for i in k]
+        self.kw = kw
         self.dct = sparrows.dct.copy()
         self.dct['table'] = self.table = kw.pop('table', self.table)
         # self.dct['table_class'] = getattr(self.db, self.dct['table'])
         self.dct['sparrow'] = sparrows
         self.dct['_sess'] = self.sess = sparrows.Session()
+
+    @property
+    def table_class(self):
+        table = getattr(self.db, self.table)
+        print('table_class', table)
+        return table
 
     def __iter__(self):
         print('k,kw @ __iter__', self.k, self.kw)
@@ -66,8 +75,9 @@ class default:
             cherrypy.response.headers['Expires'] = '0'
             yield json.dumps(result, default=tools.decimal_default)
         elif func in self.template_methods:
-            self.dct['table_class'] = getattr(self.db, self.dct['table'])
-            yield TemplateLookup(self.dirs).get_template(func + '.html').render(**self.dct)
+            # self.dct['table_class'] = getattr(self.db, self.dct['table'])
+            # print('dct:', self.dct)
+            yield TemplateLookup(self.dirs).get_template(func + '.html').render(this=self, **self.dct)
         elif func in self.setup_methods:
             result = getattr(self, func)(*self.k[1:], **self.kw)
             yield from result
@@ -76,6 +86,7 @@ class default:
     def db(self):
         # 用property的方式实现在访问self.db时，才初始化数据库，部分实现惰性连接
         if '_db' not in self.__dict__:
+            print('init db in default...')
             self.__dict__['_db'] = dbapi.init(self.db_type, self.connect_str)
         return self.__dict__['_db']
 
@@ -160,7 +171,7 @@ class default:
     def insert(self, *k, **kw):
         """插入新记录，成功的话，返回新记录的字典"""
 
-        kw.pop('isNewRecord', 'true')  # easyui 的框架在新增时会传这个参数
+        kw.pop('isnewrecord', 'true')  # easyui 的框架在新增时会传这个参数
         new_id = self.db.insert(self.dct['table'], **kw)
         res = self.db.select(self.dct['table'], id=new_id)
         return res['rows'][0]

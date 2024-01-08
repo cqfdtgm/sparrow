@@ -60,43 +60,49 @@ class Database(abc.ABC):
         self.autocommit = autocommit
 
     def __del__(self):
-        self.commit()
-        if 'cursor' in self.__dict__:
+
+        print('del in database...')
+        #self.commit()
+        if '_cursor' in self.__dict__:
+            self.commit()
+            # self.cursor.execute('commit')
             self.cursor.close()
             self.connect.close()
 
-    def __getattr__(self, table: str):
-        """未访问过的表，会将其字段结构取来，作为类的属性，该表用select返回的类cur对象表示"""
-        if not table.startswith('_'):
-            table_class = self.select(table, rows=0)
-            setattr(self.__class__, table, table_class)
-            return table_class
-
     @property
     def connect(self):
-        """只在访问该属性才才建立连接，并设为属性，避免二次连接i"""
-
-        # print('connect @ abc..', self.connect)
         if '_connect' not in self.__dict__:
-            # print('con:', self.connect_method, self.connect_str)
-            self.__dict__['_connect'] = self.__class__.connect_method(self.connect_str)
-            self.__dict__['_connect'].autocommit = self.autocommit
+            print('real connect to database:')
+            con = self.__class__.connect_method(self.connect_str)
+            if hasattr(con, 'autocommit'):
+                con.autocommit = self.autocommit
+            self.__dict__['_connect'] = con
         return self.__dict__['_connect']
 
     @property
     def cursor(self):
-        """只在需要时才建立游标，并设为属性，避免二次建立 """
-
         if '_cursor' not in self.__dict__:
+            print('real get cursor')
             self.__dict__['_cursor'] = self.connect.cursor()
         return self.__dict__['_cursor']
 
+    def __getattr__(self, table: str):
+        """未访问过的表，会将其字段结构取来，作为类的属性，该表用select返回的类cur对象表示"""
+
+        print('access table in database:', table)
+        table_class = self.select(table, rows=0)
+        setattr(self.__class__, table, table_class)
+        return table_class
+
     def begin(self):
         """sqlite3 没有事务控制？"""
-        self.cursor.begin()
+        self.cursor.execute("begin")
 
     def commit(self):
-        self.connect.commit()
+        try:
+            self.cursor.execute("commit")
+        except:
+            pass
 
     def select(self, table: str, column: str = "*", rows: int = 10, page: int = 1,
                order: str = "", **kw: dict[str, str]) -> dict:
@@ -156,6 +162,8 @@ class Database(abc.ABC):
         """返回新插入的记录的id"""
 
         sql = "insert into %(table)s (%(columns)s) values (%(values)s)"
+        if not kw:
+            kw['id'] = None
         columns = ",".join(kw.keys())
         values = ",".join([self.param_style] * len(kw))
         sql = sql % locals()
@@ -171,7 +179,7 @@ class Database(abc.ABC):
         return result.rowcount
 
     def update(self, table, id, **kw) -> int:
-        """返回成功更新成功的行数"""
+        """返回更新成功的行数"""
 
         sql = "update %(table)s set %(changes)s where id=%(id)s"
         changes = ",".join(" %s=%s " % (column, self.param_style)
@@ -224,9 +232,6 @@ class DatabasePostgresql(Database):
     # 省略时其默认为offset 0，表示从第1条记录开始。rows参数表示限制输出行数，即每页记录数。多页时，page应是（页数－1）乘以每页行数
     # _limit_0 = limit % {'rows': 0, 'start': 0, 'page': 0}
     connect_method = psycopg2.connect
-
-    def autocommit(self):
-        self.connect.autocommit = True
 
     def insert1(self, table, **kw):
         """覆写再调用，插入后需要执行lastval()以取得上次插入的记录id"""

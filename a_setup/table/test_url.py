@@ -6,7 +6,7 @@ import requests
 # from cherrypy.test import helper
 
 
-baseurl = 'http://localhost:8123/'
+baseurl = 'http://127.0.0.1:8123/'
 baseurl += 'a_setup/table/'
 
 
