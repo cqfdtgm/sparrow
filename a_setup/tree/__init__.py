@@ -8,11 +8,11 @@ name = 'Tree表设置'
 
 
 class default(parent):
-    """tree表的基本字段要求　：id 自增主键        parentId 上级id
+    """tree表的基本字段要求　：id 自增主键        parentid 上级id
     text 名称     state 状态字段，有下级时为closed，无下级为open
     path 路径，可选字段，为点字符连接的从根（０）记录到本记录的路径
     level 层级，可选字段，其中可视为path中连接符号点的数量
-    注意，初始中并不存在id为０的记录，但parentId=0表示本记录是顶层记录
+    注意，初始中并不存在id为０的记录，但parentid=0表示本记录是顶层记录
     """
 
     dirs = [os.path.dirname(__file__)] + parent.dirs
@@ -59,7 +59,7 @@ class default(parent):
         """为了保存path信息， 拦截Save请求并添加path字段。"""
 
         print('k kw @ 0_setup\\tree', kw)
-        kw['parentid'] = par = int(kw.pop('parentId'))  # tree里上级是用parentId表示的，不同于tree_grid.
+        kw['parentid'] = par = int(kw.pop('parentid'))  # tree里上级是用parentid表示的，不同于tree_grid.
         kw['state'] = 'open'
         if self.db.count(self.table, parentid=par) >= self.MAX_CHILDREN:    # 下级数量限制
             return {'isError': True, 'title': 'error', 'msg': '下级数量超出限制'}

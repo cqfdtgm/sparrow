@@ -1,2 +1,6 @@
 *.pyc
 *.un~
+test.sqlite3
+.idea
+.vscode
+.zip
