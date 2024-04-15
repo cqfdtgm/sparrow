@@ -12,6 +12,7 @@ name = 'A单表设置'
 class default(parent):
     dirs = [os.path.dirname(__file__)] + parent.dirs
     table = 'cfg_tables'
+    table_kind = name
 
     def __init__(self, *k, **kw):
         super(default, self).__init__(*k, **kw)
