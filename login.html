@@ -1,13 +1,9 @@
-﻿## 0_setup/user/default.html
-##<%include file="base.html" />
+﻿## /login.html	登录界面
+## 包含文件：menu.html 菜单文件，每个目录通用
+
 <%inherit file="base.html" />
-##<body>
 ##<% url = cherrypy.request.wsgi_environ['PATH_INFO'] %>
 ##path_info: {cherrypy.request.wsgi_environ['PATH_INFO']}
-
-## {parent.body()}
-
-##</body>
 
 <%block name="body1">
 <body>
@@ -116,7 +112,7 @@
 	<input type="hidden" name="sub" value="init sub" />
 </form>
 </div>
-${nofind}
+${nofin:wd}
 <div style="text-align:center;margin-bottom:10px;padding:10px 10px 10px 10px">
     % if 'user' not in _sess:
     <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" style="width:150px;padding:5px 0px" onclick="$('#password').textbox({'required':true});if($('#login_form').form('validate')) { document.login_form.sub.value='登录';document.login_form.submit();}" title="汉字算1个字符长度"><span style="font-size:14px">登录</span></a>

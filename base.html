@@ -1,7 +1,11 @@
 ﻿## 抽象基础模板
+## 指导原则：
+## 1、尽量少在mako模板里写逻辑
+## 2、除了简洁的在页面加载后运行的函数，其他js函数单列到文件中并引入，引入时指定绝对路径。并应写成通用模式，js文件中不能依赖mako变量。
 ## title - 页面主题
 ## easyui - jeasyui文件的存放URL目录，从根URL开始。
-## 其他HTML文件都从本文件继承，并重写body1块部分。注意，body1要包含完成的body内容。
+## 可覆盖模块：header, body1
+## 其他HTML文件都从本文件继承，并重写body1块部分。注意，body1要包含完整的body内容。
 
 <!DOCTYPE html PUBLIC "-//W3C/DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -43,6 +47,5 @@
 </head>
 
 <%block name='body1' />
-##${self.body()}
 
 </html>
