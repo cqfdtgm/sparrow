@@ -45,6 +45,7 @@ class default:
         for key in list(kw.keys()):
             if key.endswith('[]'):
                 kw[key[:-2]] = kw.pop(key)
+                key = key[:-2]
             kw[key.lower()] = kw.pop(key)   # 把所有路径以及关键字转变为小写
         self.k = [i.lower() for i in k]
         self.kw = kw
