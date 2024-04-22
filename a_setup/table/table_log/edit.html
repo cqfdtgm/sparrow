@@ -7,8 +7,8 @@
 <script type="text/javascript">
     $(function(){
 	$('#dg').edatagrid({
-	    url:'select?table=${table}'
-	    ,singleSelect: false
+	    url:'select?table=${table}&partition=id_of_data&partition_by=mtime desc'
+	    ,singleSelect: true
 	    //,onLoadSuccess:function() {
 	      //  $.mobile.go('#p0');
 		//}

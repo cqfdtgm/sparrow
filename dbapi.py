@@ -104,8 +104,9 @@ class Database(abc.ABC):
         except:
             pass
 
-    def select(self, table: str, column: str = "*", rows: int = 10, page: int = 1,
-               order: str = "", **kw: dict[str, str]) -> dict:
+    def select(self, table: str, column: str = "*", rows: int = 10, page: int = 1,\
+        partition = "", partition_by = "",
+        order: str = "", **kw: dict[str, str]) -> dict:
         """select data from database
         这些参数尽量用下划线，是为了防止与表名相冲突
         order: 每个数据库的实现不一样,格式为“order by col1 [asc|desc], col2[asc|desc]”
@@ -117,10 +118,15 @@ class Database(abc.ABC):
 
         start = (page-1) * rows
         limit = self.limit % locals()
+        print('select:', self, self.__class__, limit, self.limit)
         if order:
             order = "order by " + order
-        sql = "select %(column)s from %(table)s %(wheres)s %(order)s" \
-              "%(limit)s"
+        if partition:   # 增加对窗口函数的支持，以取最后一笔记录
+            sub = "select *, row_number() over(partition by %(partition)s\
+                order by %(partition_by)s) as rn from %(table)s %(wheres)s"
+            sql = "select %(column)s from ("+sub+") where rn=1 %(order)s %(limit)s"""
+        else:
+            sql = """select %(column)s from %(table)s %(wheres)s %(order)s %(limit)s"""
         # print('locals @ dbapi.select:', locals())
         wheres, values = self.where(**kw)
         sql = sql % locals()
