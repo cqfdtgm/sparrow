@@ -112,7 +112,7 @@
 	<input type="hidden" name="sub" value="init sub" />
 </form>
 </div>
-${nofin:wd}
+##${nofin:wd}
 <div style="text-align:center;margin-bottom:10px;padding:10px 10px 10px 10px">
     % if 'user' not in _sess:
     <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" style="width:150px;padding:5px 0px" onclick="$('#password').textbox({'required':true});if($('#login_form').form('validate')) { document.login_form.sub.value='登录';document.login_form.submit();}" title="汉字算1个字符长度"><span style="font-size:14px">登录</span></a>

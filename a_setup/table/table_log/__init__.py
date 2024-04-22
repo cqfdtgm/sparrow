@@ -24,10 +24,10 @@ class default(parent):
     比较适用于员工资料，通讯录，固定资产资料等一些场景。
     """
     dirs = [os.path.dirname(__file__)] + parent.dirs
-    table = 'table_log'
+    table = 'users_log'
 
     def __init__(self, *k, **kw):
-        super(default, self).__init__(k, kw)
+        super(default, self).__init__(*k, **kw)
 
     def select(self, m_time=None, **kw):
         """重写select，以便取得指定日期之前的，最大修改日期的副本。
