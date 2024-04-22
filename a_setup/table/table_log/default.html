@@ -1,0 +1,79 @@
+﻿## 0_setup/index.html
+<%inherit file="log.html" />
+
+<%block name="js">
+<script type="text/javascript">
+    function esc_str(str,row,index) {
+	str2 = str.substring(0,200).replace(/%/g,"&amp;").replace(/ /g, "&nbsp;").replace(/</g, "&lt;").replace(/\n/g, "<br>");
+	return str2;
+    }
+    $(function(){
+	$('#dg').datagrid({
+	    url:'select?table=${table}'
+	    //,onLoadSuccess:function () {	// 能在这儿控制是否显示编辑按钮或可用不？当穿越时间为空或大于当前时间时，才可以修改
+	      //  $.mobile.go('#p0');
+		//}
+	});
+    });
+</script>
+</%block>
+
+<%block name="mright_edit">
+    <div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('addRow')">增加</div>
+    <div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('destroyRow')">删除</div>
+    <div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('saveRow')">保存</div>
+    <div href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true, BBiconCls:'icon-add'" onclick="javascript:$('#dg').edatagrid('cancelRow')">取消</div>
+</%block>
+
+<%block name="toolsearch" >	
+## 需要重写这个模块，以便增加一个穿越时间字段
+<div style="float:right;padding:0px;display:inline-block">
+<script language="javascript">
+	var person = {
+	search: function (value,  kind) {
+	var kw = {};
+	kw[kind] = value;
+	kw['mtime'] = $('#dt').datetimebox('getValue');
+	console.log(kw);
+	$("#dg").datagrid("load", kw);
+	
+}}
+</script>
+穿越到：<input id="dt" class="easyui-datetimebox" lable="穿越到：" labelPosition="left">
+## 注意此处，需要关联修改菜单！只有穿越时间为空时（默认，表示展示的每笔记录的最大值 ），才可以修改或删除）
+<input id="search" class="easyui-searchbox" value="" style="width:250px;" prompt='根据相应字段模糊查询'
+		searcher="person.search" menu="#mm" data-options=
+				"icons:[{iconCls:'icon-clear', handler: function(e) {$(e.data.target).searchbox('clear');
+				$('#dg').datagrid('load', {'mtime':$('#dt').datebox('getValue')});} }] ">
+<div id="mm">
+	##% for col in getattr(cfg.db1, _real_table)['desc'][:9]:
+	% for col in this.table_class['desc'][:9]:
+		<div data-options="kind: '${col[0]}'">${col[0]}</div>
+	% endfor
+</div>
+</div>
+</%block>
+
+<!--
+<%block name="p3_body">
+<div style="float:center;padding:0px">
+    <script language="javascript">
+	var person = {
+	    search: function (value,  kind) {
+	    var kw = {};
+	    kw[kind] = value;
+	    console.log('search, @ navigate ', kw);
+	    $("#dg").datagrid("load", kw);
+    }}
+    </script>
+    <input id="search" class="easyui-searchbox" value="" style="width:250px;'" prompt='根据相应字段模糊查询' searcher="person.search" menu="#mm" data-options="icons:[{iconCls:'icon-clear', handler: function(e) {$(e.data.target).searchbox('clear'); $('#dg').datagrid('load', {});}
+    }]
+	">
+    <div id="mm">
+	% for col in table_class._desc[:9]:
+	  <div data-options="kind: '${col[0]}'">${col[0]}</div>
+	% endfor
+    </div>
+</div>
+</%block>
+-->
