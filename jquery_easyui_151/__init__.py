@@ -16,7 +16,6 @@ class default(default_):
 
     def __init__(self, *k, **kw):
         if len(k):  # 没有多余URL的话，只涉及显示default.html
-            # dirs = os.path.dirname(__file__)
             path = os.sep.join(self.dirs[0].split(os.sep) + [*k])
             if os.path.isfile(path):  # 如果是jquery源文件，直接下载
                 k = ('_download',)
@@ -24,13 +23,16 @@ class default(default_):
             else:  # 否则是目录，则显示dir.html
                 k = ('dir', *k)
         super(default, self).__init__(*k, **kw)
+
+    def default(self, *k, **kw):
         for _, self.dct['dirs'], _ in os.walk(self.dirs[0] + '\\demo', True):
             break  # 巧取一级目录列表，用os.listdir的话要排除文件
-        if k and k[0] == 'dir':
-            dirs = os.sep.join((self.dirs[0], 'demo', self.k[1]))
-            self.dct['dir'] = self.k[1]
-            for _, _, self.dct['files'] in os.walk(dirs):
-                break
+
+    def dir(self, *k, **kw):
+        dirs = os.sep.join((self.dirs[0], 'demo', k[0]))
+        self.dct['dir'] = k[0]
+        for _, _, self.dct['files'] in os.walk(dirs):
+            break
 
     def _download(self, path=""):
         """下载文件的方法"""

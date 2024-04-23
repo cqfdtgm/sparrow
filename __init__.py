@@ -23,14 +23,17 @@ name = 'homepage'
 class default:
     exposed = True
     file = __file__
+    
+    """模板搜索路径列表
+    默认从本目录开始向上查找，则不需要改变
+    dirs[1:]    从上级目录开始向上查找
+    dirs[-1]    直接在根目录中查找
+    dirs[::-1]  从根目录向下查找
+    至于mako文件的继承顺序，则在base.html里进行说明 """
     dirs = [os.path.dirname(__file__)]  # mako的模板搜索路径。子目录会把自己加在这个列表的前面。
+
     table = 'users'
 
-    # 返回json数据的方法列表，基本都是取自数据库
-    json_methods = ['select', 'update', 'delete', 'insert', 'tree', 'pop',
-                    'directory', 'dnd']
-    # 返回模板内容的方法列表，目录下有同名的html文件
-    template_methods = ['default', 'login', 'log', 'users', 'debug', 'edit']
     setup_methods = ['_test', '_src']       # 系统方法，原样返回
     db_type, connect_str = private.conn_pg15
     db_type, connect_str = private.conn_sqlite_1
@@ -54,12 +57,6 @@ class default:
         self.dct['sparrow'] = sparrows
         self.dct['_sess'] = self.sess = sparrows.Session()
 
-    @property
-    def table_class(self):
-        table = getattr(self.db, self.table)
-        print('table_class', table)
-        return table
-
     def __iter__(self):
         print('k,kw @ __iter__', self.k, self.kw)
         if not self.k:
@@ -77,18 +74,11 @@ class default:
         elif func in self.template_methods:
             # self.dct['table_class'] = getattr(self.db, self.dct['table'])
             # print('dct:', self.dct)
+            result = getattr(self, func)(*self.k[1:], **self.kw)
             yield TemplateLookup(self.dirs).get_template(func + '.html').render(this=self, **self.dct)
         elif func in self.setup_methods:
             result = getattr(self, func)(*self.k[1:], **self.kw)
             yield from result
-
-    @property
-    def db(self):
-        # 用property的方式实现在访问self.db时，才初始化数据库，部分实现惰性连接
-        if '_db' not in self.__dict__:
-            print('init db in default...')
-            self.__dict__['_db'] = dbapi.init(self.db_type, self.connect_str)
-        return self.__dict__['_db']
 
     @staticmethod
     def _src(path=__file__):
@@ -98,6 +88,23 @@ class default:
         s = open(path, "rb").read().decode()
         s = s.replace('<', '&lt;').replace('\t', ' ' * 4)   # 要用于HTML展示的话，小于符号先转义
         yield '<pre>%s</pre>' % s
+
+    @property
+    def db(self):
+        # 用property的方式实现在访问self.db时，才初始化数据库，部分实现惰性连接
+        if '_db' not in self.__dict__:
+            print('init db in default...')
+            self.__dict__['_db'] = dbapi.init(self.db_type, self.connect_str)
+        return self.__dict__['_db']
+
+    @property
+    def table_class(self):
+        table = getattr(self.db, self.table)
+        print('table_class', table)
+        return table
+
+    # 返回json数据的方法列表，基本都是取自数据库
+    json_methods = ['select', 'update', 'delete', 'insert', 'tree', 'pop', 'directory', 'dnd']
 
     def directory(self):
         """
@@ -232,6 +239,27 @@ class default:
         """更新记录，返回更新后的记录的字典"""
         self.db.update(self.dct['table'], id, **kw)
         return self.db.select(self.dct['table'], id=id)['rows'][0]
+
+
+    # 返回模板内容的方法列表，目录下有同名的html文件
+    template_methods = ['default', 'login', 'log', 'users', 'debug', 'edit']
+    def debug(self, *k, **kw):
+        pass
+
+    def default(self, *k, **kw):
+        pass
+
+    def edit(self, *k, **kw):
+        pass
+
+    def log(self, *k, **kw):
+        pass
+
+    def login(self, *k, **kw):
+        pass
+
+    def users(self, *k, **kw):
+        pass
 
 
 # 在每个包的末尾，手工导入下级各个目录，注意，不导入.py文件，各目录名称也在8个字符以内，不含'.'字符。
