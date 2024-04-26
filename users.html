@@ -1,23 +1,26 @@
 ﻿## 0_setup/user/default.html
-<%inherit file="base.html" />
+<%inherit file="base_table.html" />
 
-<%block name="body1">
-<body>
-<%include file="menu.html" />
-<table id="online" class="easyui-datagrid" style="BBheight:100%; BBpadding: 50px ; align:center" data-options="
+<%block name="bodyBB">
+
+    <body>
+        <%include file="menu.html" />
+        <table id="online" class="easyui-datagrid" style="BBheight:100%; BBpadding: 50px;" align="center" data-options="
     rownumbers:true, singleSelect:true, autoRowHeight:true, pagination:true, pageSize:10, collapsible:false,
     url:'select', method:'post', fitColumns:true, fit:false, striped:true,width:'100%' ">
-<thead><tr>
-        <th data-options="field:'id'">id</th>
-        <th data-options="field:'name'">用户名</th>
-        ## <th data-badge="field:'passwd'">密码</th>  ## 不敢显示md5密码, 网上太好破解了.
-        <th data-options="field:'ip'">IP地址</th>
-        <th data-options="field:'state'">状态</th>
-        <th data-options="field:'online_state'">在线状态</th>
-        <th data-options="field:'login_time'">登录时间</th>
-        <th data-options="field:'logout_time'">上次退出时间</th>
-</tr></thead>
-<tbody></tbody>
-</table>
-</body>
+            <thead>
+                <tr>
+                    <th data-options="field:'id'">id</th>
+                    <th data-options="field:'name'">用户名</th>
+                    ## <th data-badge="field:'passwd'">密码</th> ## 不敢显示md5密码, 网上太好破解了.
+                    <th data-options="field:'ip'">IP地址</th>
+                    <th data-options="field:'state'">状态</th>
+                    <th data-options="field:'online_state'">在线状态</th>
+                    <th data-options="field:'login_time'">登录时间</th>
+                    <th data-options="field:'logout_time'">上次退出时间</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </body>
 </%block>

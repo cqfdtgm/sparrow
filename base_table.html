@@ -1,0 +1,110 @@
+﻿## base_table.html
+## 单表查看的标准模板。
+## 继承自：base.html
+## 输入参数：
+## this:	py主脚本中的default类
+## this.table_class:	表结构类，含字段名称，类型，拟采用编辑器名称等
+
+<%inherit file="base.html" />
+
+<body>
+	<%block name='body1'>
+		<%include file="menu.html" />
+
+		<%block name="js">	<!--启动脚本，装载表格内容-->
+			<script type="text/javascript">
+				$(function () {
+					var hei = $(window).height() - 120;
+					console.log('hei', hei);
+					$('#dg').datagrid({
+						//url: 'select?table=${table}&_log=true'
+						url: 'select?table=${table}&sort=id&order=desc'
+						, pagePosition: top
+						//,height:500
+						//,height:hei
+					});
+					//    panel = $('#dg').datagrid('getPanel');
+					//    panel.panel({tools:'#toolbar'});
+					$("body").css("width", $(window).width());
+					//	$('#dg').datagrid('getPanel').panel('maximize');
+				});
+			</script>
+		</%block>
+
+		<%block name="body_11">	<!-- grid的主显示区域，表格id:dg-->
+			<div id="toolbar" style="margin:5px;width:98%">
+				<%block name="toolbutton" />
+				<%block name="toolsearch">
+					<div style="float:right;padding:0px;display:inline-block">
+						<script language="javascript">
+							var person = {
+								search: function (value, kind) {
+									var kw = {};
+									if (kind != '(clear)') {
+										kw[kind] = value;
+									}
+									$("#dg").datagrid("load", kw);
+								}
+							}
+						</script>
+						<input id="search" class="easyui-searchbox" value="" style="width:250px;" prompt='根据相应字段模糊查询'
+							searcher="person.search" menu="#mm" data-options="icons:[{iconCls:'icon-clear', handler: function(e) {$(e.data.target).searchbox('clear');
+
+				    $('#dg').datagrid('load', {});} }] ">
+						<div id="mm">
+							##% for col in getattr(cfg.db1, _real_table)['desc'][:9]:
+							<div data-options="kind: 'clear'">(clear)</div>	<!--不指定字段-->
+							% for col in this.table_class['desc'][:9]:
+							<div data-options="kind: '${col[0]}'">${col[0]}</div>
+							% endfor
+						</div>
+					</div>
+				</%block>	<!--toolsearch end-->
+			</div>
+			<div style="height:100%">	<!--主表格显示区域，其中指定toolbar-->
+				<table id="dg" style="width:98%;" data-options=" rownumbers:true, singleSelect:true, autoRowHeight:true, pagination:true, nowrap:false, pageSize:10, collapsible:false, url:'select?sort=id&order=desc', maximized:false, height:'auto', pagePosition:'bottom', saveUrl:'insert?table=${table}', updateUrl:'update?table=${table}', destroyUrl:'delete?table=${table}', idField:'id', pageSize:10
+	,toolbar:'#toolbar', multiSort:true, remoteSort:true ">
+					<thead nowrap=false>
+						<tr style="white-space: nowrap;" align="center">
+							<th id="dg_check" field="ck" checkbox="true"></th>
+							% for col in this.table_class['desc'][:11]: # 只显示前面有限个字段
+							## 其实应该根据字段的类型来选择对应的编辑器. id不可编辑, text为textarea, 数字为对应的数字编辑, varchar为text.
+							<th field="${col[0]}" 
+								%if col[0]=='id' :	## 如何避免在此处写判断逻辑？
+								 style="white-space: nowrap;width:auto" 
+								%elif col[1]==1043: ## varchar
+								editor="text" formatter="esc_str" width="100" 
+								%elif col[1]==25: ## text
+								editor="textarea" formatter="esc_str" width="100" 
+								%elif col[1]==23: ## int
+								editor="numberbox" width="100" <%doc>width="100" data-options="editor: {
+								type:'combogrid',
+								options: {
+								idField:'name', textField:'name', fit:false,
+								columns:[[{field:'id', title:'id'}
+								,{field:'name_zh', title:'表名称'}
+								,{field:'name', title:'表代码'}
+								]],
+								url:'select?table=cfg_tables'
+								,queryParams: { kind:'${table_kind}' }
+								,pagination: true, mode:'remote', fitColumns:false
+								,panelHeight: 400, BBheight: 300, panelWidth:250, width: 120, delay: 100
+								, title: '目标选择'
+								}
+								</%doc>
+								}"
+								%else:
+								editor="text"
+								width="100" ${col[1]}
+								%endif
+								sortable="true">${col[0]}</th>
+							% endfor
+						</tr>
+					</thead>
+				</table>
+				<%block name="p0_body_add" />
+			</div>
+		</%block>	<!--body11 end-->
+
+	</%block>	<!--block body1 end-->
+</body>
