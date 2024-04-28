@@ -1,10 +1,8 @@
 ﻿## 0_setup/user/default.html
 <%inherit file="default.html" />
 
-${parent.body()}
-
-<%block name="js">
-${parent.js()}
+<%block name="js_onload">
+${parent.js_onload()}
 <script type="text/javascript">
     $(function(){
         console.log('start...');

@@ -1,0 +1,43 @@
+﻿## base_table.html
+## 单表查看的标准模板。
+## 继承自：base.html
+## 输入参数：
+## this: py主脚本中的default类
+## this.table_class: 表结构类，含字段名称，类型，拟采用编辑器名称等
+## table: 主表名，由this.table定义，也可带参数改变
+
+<%inherit file="base.html" />
+
+<body>
+	<%block name='body1'>
+		<%include file="menu.html" />
+
+		<%block name="js_onload"> <!--启动脚本，装载表格内容-->
+			<script type="text/javascript">
+				$(function () {
+					var hei = $(window).height() - 120;
+					console.log('hei', hei);
+					$('#dg').datagrid({
+						//url: 'select?table=${table}&_log=true'
+						url: 'select?table=${table}&sort=id&order=desc'
+						, pagePosition: top
+						//,height:500
+						//,height:hei
+					});
+					//    panel = $('#dg').datagrid('getPanel');
+					//    panel.panel({tools:'#toolbar'});
+					$("body").css("width", $(window).width());
+					//	$('#dg').datagrid('getPanel').panel('maximize');
+				});
+			</script>
+		</%block>
+
+		<%block name="body_11"> <!-- grid的主显示区域，表格id:dg-->
+			<div style="height:100%">
+				<ul id="tr" data-options="createUrl:'insert?table=${table}', updateUrl:'update?table=${table}', destroyUrl:'delete?table=${table}', dndUrl:'dnd?table=${table}', fit:true, Url:'tree?table=${table}'">
+				</ul>
+			</div>
+		</%block> <!--body11 end-->
+
+	</%block> <!--block body1 end-->
+</body>

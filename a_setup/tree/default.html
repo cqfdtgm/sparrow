@@ -1,9 +1,9 @@
 ﻿## 0_setup/index.html
-<%inherit file="log.html" />
+<%inherit file="base_tree.html" />
 
-${parent.body()}
+## ${parent.body()}
 
-<%block name="js">
+<%block name="js_onload">
 <script type="text/javascript">
     $(function(){
         $('#tr').tree({
@@ -67,8 +67,9 @@ ${parent.body()}
         $('#dg').hide();
     });
 </script>
-</%block>
 
 <%block name="toolbutton">
    ## <div id="pp0" style="position:relative;display:inline-block;BBvisibility:hidden"></div>
 </%block>
+</%block>
+
