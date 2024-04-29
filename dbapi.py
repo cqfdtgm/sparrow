@@ -211,7 +211,11 @@ class Database(abc.ABC):
                 if value[0] in ('>', '<', '>=', '<='):
                     wheres.append("""%s %s %s""" % (column, value[0], self.param_style))
                     values.append(value[1])
+                elif value[0] == 'between':
+                    wheres.append("""%s between %s and %s""" % (column, self.param_style, self.param_style))    
+                    values.extend(value[1:])
                 else:   # in , not in, is null, is not null...
+                    print('values:', column, value)
                     raise
         wheres = " where " + " and ".join(wheres)
         return wheres, values

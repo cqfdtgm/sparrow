@@ -39,7 +39,14 @@ class default(parent):
         如不指定日期，则是指最新数据，可以进行修改"""
 
         mtime = kw.pop('mtime', '') 
-        if mtime:   # 如果选择了穿越功能，则只显示该时间点以前的记录
+        if type(mtime) == type([]): # 提供了两个日期，则是在日志显示中为了按时段查看
+            if mtime[0] and mtime[1]:   # 开始结束时间都选择
+                kw['mtime'] = ['between', *mtime]
+            elif mtime[0]:  # 只提供了开始时间
+                kw['mtime'] = ['>=', mtime[0]]
+            elif mtime[1]:  # 只提供了结束时间
+                kw['mtime'] = ['<=', mtime[1]]
+        elif mtime:   # 如果选择了穿越功能，则只显示该时间点以前的记录
             kw['mtime'] = ['<=', mtime]
         # partition = kw.pop('partition', '')
         # partition_by = kw.pop('partition_by', '')
@@ -53,8 +60,8 @@ class default(parent):
         kw.pop('rn', '')    # rn是select时多出来的一个字段
         kw['mtime'] = datetime.datetime.now()
         kw['action'] = '修改'
-        # 如何实现修改时不能修改id_of_data字段？
-        # 在界面中展示只能修改业务字段，不能修改id, id_of_data, mtime, state, action等。
+        # 如何实现修改时不能修改did字段？
+        # 在界面中展示只能修改业务字段，不能修改id, did, mtime, state, action等。
         rec = super().insert(**kw)
         return rec
 
@@ -76,5 +83,8 @@ class default(parent):
         kw['state'] = '有效'
         kw['action'] = '增加'
         kw['mtime'] = datetime.datetime.now()
-        kw['id_of_data'] = self.db.max(table=self.dct['table'], column='id_of_data') + 1
+        kw['did'] = self.db.max(table=self.dct['table'], column='did') + 1
         return super().insert(**kw)
+
+    def log(self, *k, **kw):
+        pass

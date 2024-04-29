@@ -1,9 +1,7 @@
 ﻿## 0_setup/user/default.html
 <%inherit file="default.html" />
 
-##${parent.body()}
-
-<%block name="js">
+<%block name="js_onload">
 <script type="text/javascript">
     $(function(){
 	$('#dg').edatagrid({

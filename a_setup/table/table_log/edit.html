@@ -1,13 +1,12 @@
 ﻿## 0_setup/user/default.html
 <%inherit file="default.html" />
 
-##${parent.body()}
-
-<%block name="js">
+<%block name="js_onload">
 <script type="text/javascript">
     $(function(){
+        $('#dt').datetimebox('disable');    // 编辑界面，只能对最新数据，所以隐藏穿越按钮
 	$('#dg').edatagrid({
-	    url:'select?table=${table}&partition=id_of_data&partition_by=mtime desc'
+	    url:'select?table=${table}&partition=did&partition_by=mtime desc'
 	    ,singleSelect: true
 	    //,onLoadSuccess:function() {
 	      //  $.mobile.go('#p0');

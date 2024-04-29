@@ -28,7 +28,7 @@ class TestUrl:
         execute("""drop table if exists tmp_users_log""")
         execute("""CREATE TABLE tmp_users_log (
             id integer primary key autoincrement ,    -- 自增主键
-            id_of_data integer,       -- 数据主键，需要此字段，name才可修改，否则name不可修改
+            did integer,       -- 数据主键，需要此字段，name才可修改，否则name不可修改
             name character varying(20),   -- 姓名
             part character varying(100),  -- 部门
             state character varying(20),  -- 状态，可能为有效，注销，挂起
@@ -62,7 +62,7 @@ class TestUrl:
         dct = r.json()
         print('test_insert2:', dct)
         assert r.status_code == 200
-        assert dct['id_of_data'] > 0
+        assert dct['did'] > 0
         assert dct['name'] == 'test2'
         assert dct['state'] == '有效'
         assert dct['mtime'] != ''
@@ -80,7 +80,7 @@ class TestUrl:
     def test_insert4(self):
         """带id"""
 
-        r = requests.get(self.baseurl + 'insert' + self.args + '&id_of_data=2&name=id2&part=scb')
+        r = requests.get(self.baseurl + 'insert' + self.args + '&did=2&name=id2&part=scb')
         dct = r.json()
         assert r.status_code == 200
         # assert dct['id'] == 100

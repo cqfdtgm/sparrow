@@ -7,7 +7,7 @@ drop table if exists users_log;
 CREATE TABLE users_log
 (
   id integer primary key autoincrement ,    -- 自增主键
-  id_of_data integer,       -- 数据主键，需要此字段，name才可修改，否则name不可修改
+  did integer,       -- 数据主键，需要此字段，name才可修改，否则name不可修改
   name character varying(20),   -- 姓名
   part character varying(100),  -- 部门
   state character varying(20),  -- 状态，可能为有效，注销，挂起
