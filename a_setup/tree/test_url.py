@@ -55,7 +55,7 @@ class TestUrl:
         assert r.status_code == 200
 
     def test_insert2(self):
-        """播放共4个记录，tree返回的会是无total的列表"""
+        """插入共4个记录，tree返回的会是无total的列表"""
         requests.get(self.baseurl + 'insert?table=test_org&parentId=0')
         requests.get(self.baseurl + 'insert?table=test_org&parentId=0')
         r = requests.get(self.baseurl + 'insert?table=test_org&parentId=0')

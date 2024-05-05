@@ -48,12 +48,13 @@ class default:
         for key in list(kw.keys()):
             if key.endswith('[]'):
                 kw[key[:-2]] = kw.pop(key)
+                key = key[:-2]
             kw[key.lower()] = kw.pop(key)   # 把所有路径以及关键字转变为小写
         self.k = [i.lower() for i in k]
         self.kw = kw
         self.dct = sparrows.dct.copy()
         self.dct['table'] = self.table = kw.pop('table', self.table)
-        # self.dct['table_class'] = getattr(self.db, self.dct['table'])
+        self.dct['table_class'] = getattr(self.db, self.dct['table'])
         self.dct['sparrow'] = sparrows
         self.dct['_sess'] = self.sess = sparrows.Session()
 
@@ -237,6 +238,7 @@ class default:
 
     def update(self, id=None, **kw):
         """更新记录，返回更新后的记录的字典"""
+        kw.pop('isnewrecord', 'true')  # easyui 的框架在新增时会传这个参数
         self.db.update(self.dct['table'], id, **kw)
         return self.db.select(self.dct['table'], id=id)['rows'][0]
 
@@ -253,13 +255,15 @@ class default:
         pass
 
     def log(self, *k, **kw):
-        pass
+        # 为了不影响其他菜单中的链接，table不加后缀，而是在HTML模板中装载数据的地方加后缀。
+        # self.dct['table'] = self.table = kw.pop('table', self.table)
+        self.dct['table_class'] = getattr(self.db, self.dct['table'] + '_log')
 
     def login(self, *k, **kw):
         pass
 
     def users(self, *k, **kw):
-        pass
+        self.dct['table_class'] = getattr(self.db, self.dct['table'])
 
 
 # 在每个包的末尾，手工导入下级各个目录，注意，不导入.py文件，各目录名称也在8个字符以内，不含'.'字符。

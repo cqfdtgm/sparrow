@@ -1,9 +1,7 @@
 ﻿## 0_setup/index.html
-<%inherit file="log.html" />
+<%inherit file="base_table.html" />
 
-##${parent.body()}
-
-<%block name="js">
+<%block name="js_onload">
 <script type="text/javascript">
     function esc_str(str,row,index) {
 	str2 = str.substring(0,200).replace(/%/g,"&amp;").replace(/ /g, "&nbsp;").replace(/</g, "&lt;").replace(/\n/g, "<br>");

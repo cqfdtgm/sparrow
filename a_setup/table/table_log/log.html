@@ -1,15 +1,19 @@
-﻿## \a_setup\table\table_log\default.html
+﻿## \a_setup\table\table_log\log.html
 ## 输入参数：
 ## table - 表名
 ## table_class - 表结构类，含字段名称，类型，拟采用编辑器名称等
 
-<%inherit file="base_table.html" />
+<%inherit file="default.html" />
 
 <%block name="js_onload">
 	<script type="text/javascript">
+		function esc_str(str, row, index) {
+			str2 = str.substring(0, 200).replace(/%/g, "&amp;").replace(/ /g, "&nbsp;").replace(/</g, "&lt;").replace(/\n/g, "<br>");
+			return str2;
+		}
 		$(function () {
 			$('#dg').datagrid({
-				url: 'select?table=${table}&partition=did&partition_by=mtime desc'
+				url: 'select?table=${table}&sort=id&order=desc'
 				//,onLoadSuccess:function () {	// 能在这儿控制是否显示编辑按钮或可用不？当穿越时间为空或大于当前时间时，才可以修改
 				//  $.mobile.go('#p0');
 				//}
@@ -23,21 +27,22 @@
 		function search2(value, name) {
 			var kw = {};
 			kw[name] = value;
-			kw['mtime'] = $('#dt').datetimebox('getValue');
+			kw['mtime'] = [$('#dt').datetimebox('getValue'), $('#dt2').datetimebox('getValue')];
 			console.log(kw);
 			$("#dg").datagrid("load", kw);
 		}
 	</script>
 	## 需要重写这个模块，以便增加一个穿越时间字段
 	<div style="float:right; padding:0px;display:inline-block">
-		<div class="easyui-tooltip" title="编辑时不能穿越" style="display:inline-block">穿越到：</div>
+		<div class="easyui-tooltip" title="不选表示不指定" style="display:inline-block">时间段：</div>
 		<input id="dt" class="easyui-datetimebox" lable="穿越到：" labelPosition="left">
+		<input id="dt2" class="easyui-datetimebox" lable="穿越到：" labelPosition="left">
 		## 注意此处，需要关联修改菜单！只有穿越时间为空时（默认，表示展示的每笔记录的最大值 ），才可以修改或删除）
 		<input id="search" class="easyui-searchbox" value="" style="width:250px;" prompt='根据相应字段模糊查询' searcher="search2"
-			menu="#mm" data-options="icons:[{iconCls:'icon-clear', handler: function(e) {$(e.data.target).searchbox('clear'); $(e.data.target).searchbox('selectName', 'clear')
-				$('#dg').datagrid('load', {'mtime':$('#dt').datebox('getValue')});} }] ">
+			menu="#mm" data-options="icons:[{iconCls:'icon-clear', handler: function(e) {$(e.data.target).searchbox('clear'); $(e.data.target).searchbox('selectName','clear');
+				$('#dg').datagrid('load', {'mtime':[$('#dt').datebox('getValue'), $('#dt2').datebox('getValue')]});} }] ">
 		<div id="mm">
-			<div id='mm1' data-options="name: 'clear'">请选择字段</div> <!--不指定字段-->
+			<div data-options="name: 'clear'">请选择字段</div> <!--不指定字段-->
 			% for col in this.table_class['desc'][:9]:
 			<div data-options="name: '${col[0]}'">${col[0]}</div>
 			% endfor

@@ -6,6 +6,7 @@
 # 3、修改总是在最新记录上进行
 # 4、字段要求：有自增主键id，第二主键为真实主键，有一个表示修改时间的m_date。
 
+import datetime
 import os
 
 from .. import default as parent
@@ -27,25 +28,63 @@ class default(parent):
     table = 'users_log'
 
     def __init__(self, *k, **kw):
+        
         super(default, self).__init__(*k, **kw)
+        self.dct['_real_table'] = self.dct['table'] = kw.pop('table', self.table)
+        self.dct['table_kind'] = name
+        self.dct['table_class'] = getattr(self.db, self.dct['table'])
 
     def select(self, m_time=None, **kw):
         """重写select，以便取得指定日期之前的，最大修改日期的副本。
         如不指定日期，则是指最新数据，可以进行修改"""
 
-        pass
+        mtime = kw.pop('mtime', '') 
+        if type(mtime) == type([]): # 提供了两个日期，则是在日志显示中为了按时段查看
+            if mtime[0] and mtime[1]:   # 开始结束时间都选择
+                kw['mtime'] = ['between', *mtime]
+            elif mtime[0]:  # 只提供了开始时间
+                kw['mtime'] = ['>=', mtime[0]]
+            elif mtime[1]:  # 只提供了结束时间
+                kw['mtime'] = ['<=', mtime[1]]
+        elif mtime:   # 如果选择了穿越功能，则只显示该时间点以前的记录
+            kw['mtime'] = ['<=', mtime]
+        # partition = kw.pop('partition', '')
+        # partition_by = kw.pop('partition_by', '')
+        return super().select(**kw)
 
     def update(self, **kw):
         """重写更新函数，每次更新实际生成一笔新记录"""
 
-        pass
+        assert int(kw.pop('id', 0)) > 0  # 不能修改空记录
+        kw.pop('id', 0)
+        kw.pop('rn', '')    # rn是select时多出来的一个字段
+        kw['mtime'] = datetime.datetime.now()
+        kw['action'] = '修改'
+        # 如何实现修改时不能修改did字段？
+        # 在界面中展示只能修改业务字段，不能修改id, did, mtime, state, action等。
+        rec = super().insert(**kw)
+        return rec
 
     def delete(self, id):
         """重写delete，删除只是生成一笔状态为删除的新记录"""
 
-        pass
+        result = self.db.select(self.dct['table'], id=id)
+        kw = result['rows'][0]
+        kw.pop('id')
+        kw['mtime'] = datetime.datetime.now()
+        kw['state'] = '注销'
+        kw['action'] = '注销'
+        rec = super().insert(**kw)
+        return dict(success=True, newid=rec['id'])
 
     def insert(self, **kw):
         """重写insert，生成新记录前，要检查第二主键是否重复"""
 
+        kw['state'] = '有效'
+        kw['action'] = '增加'
+        kw['mtime'] = datetime.datetime.now()
+        kw['did'] = self.db.max(table=self.dct['table'], column='did') + 1
+        return super().insert(**kw)
+
+    def log(self, *k, **kw):
         pass

@@ -1,31 +1,36 @@
 ﻿## 0_setup/user/default.html
 <%inherit file="default.html" />
 
-##${parent.body()}
-
-<%block name="js">
-<script type="text/javascript">
-    $(function(){
-	$('#dg').edatagrid({
-	    url:'select?table=${table}'
-	    ,singleSelect: false
-	    //,onLoadSuccess:function() {
-	      //  $.mobile.go('#p0');
-		//}
-	    ,height: $(window).height()-100
-	});
-    });
-</script>
+<%block name="js_onload">
+    <script type="text/javascript">
+        $(function () {
+            $('#dt').datebox('disable');    // 编辑界面，只能对最新数据，所以隐藏穿越按钮
+            $('#dg').edatagrid({
+                url: 'select?table=${table}&partition=did&partition_by=mtime desc'
+                , singleSelect: true
+                //,onLoadSuccess:function() {
+                //  $.mobile.go('#p0');
+                //}
+                , height: $(window).height() - 100
+            });
+            //$('#dt').hide();    // 编辑界面，只能对最新数据，所以隐藏穿越按钮
+            //$('#dt').remove();    // 编辑界面，只能对最新数据，所以隐藏穿越按钮
+        });
+    </script>
 </%block>
-
 
 <%block name="toolbutton">
     ## 以下部分可以考虑单列一个edit_menu.html的菜单文件, 用include的方式包含进来.
-    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="javascript:$('#dg').edatagrid('addRow')">增加</a>
-    <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="javascript:$('#dg').edatagrid('destroyRow')">删除</a>
-    <a href="#" class="easyui-linkbutton" iconCls="icon-save" plain="true" onclick="javascript:$('#dg').edatagrid('saveRow')">保存</a>
-    <a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false">取消</a>
-    <a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false">导入</a>
-    <a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false">导出</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true"
+        onclick="javascript:$('#dg').edatagrid('addRow')">增加</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true"
+        onclick="javascript:$('#dg').edatagrid('destroyRow')">删除</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-save" plain="true"
+        onclick="javascript:$('#dg').edatagrid('saveRow')">保存</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true"
+        onclick="javascript:$('#dg').edatagrid('cancelRow');return false">取消</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true"
+        onclick="javascript:$('#dg').edatagrid('cancelRow');return false">导入</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true"
+        onclick="javascript:$('#dg').edatagrid('cancelRow');return false">导出</a>
 </%block>
-
