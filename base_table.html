@@ -39,24 +39,23 @@
 					<div style="float:right;padding:0px;display:inline-block">
 						<script language="javascript">
 							var person = {
-								search: function (value, kind) {
+								search: function (value, name) {
 									var kw = {};
-									if (kind != '请选择字段') {
-										kw[kind] = value;
+									if (name != '请选择字段') {
+										kw[name] = value;
 									}
 									$("#dg").datagrid("load", kw);
 								}
 							}
 						</script>
 						<input id="search" class="easyui-searchbox" value="" style="width:250px;" prompt='根据相应字段模糊查询'
-							searcher="person.search" menu="#mm" data-options="icons:[{iconCls:'icon-clear', handler: function(e) {$(e.data.target).searchbox('clear');
-
+							searcher="person.search" menu="#mm" data-options="icons:[{iconCls:'icon-clear', handler: function(e) {$(e.data.target).searchbox('clear'); $(e.data.target).searchbox('selectName', 'clear');
 				    $('#dg').datagrid('load', {});} }] ">
 						<div id="mm">
 							##% for col in getattr(cfg.db1, _real_table)['desc'][:9]:
-							<div data-options="kind: 'clear_no_user'">请选择字段</div> <!--不指定字段-->
+							<div data-options="name: 'clear'">请选择字段</div> <!--不指定字段-->
 							% for col in table_class['desc'][:9]:
-							<div data-options="kind: '${col[0]}_no_use'">${col[0]}</div>
+							<div data-options="name: '${col[0]}_no_use'">${col[0]}</div>
 							% endfor
 						</div>
 					</div>
@@ -100,7 +99,7 @@
 							</%doc>
 							%else:
 							<th field="${col[0]}" style="white-space: nowrap;width:auto" editor="text" width="100"
-								sortable="true" %{col[1]}>${col[0]}</th>
+								sortable="true" ${col[1]}>${col[0]}</th>
 							%endif
 							% endfor
 						</tr>
