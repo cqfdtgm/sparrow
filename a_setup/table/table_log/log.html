@@ -26,8 +26,10 @@
 	<script language="javascript">
 		function search2(value, name) {
 			var kw = {};
-			kw[name] = value;
-			kw['mtime'] = [$('#dt').datetimebox('getValue'), $('#dt2').datetimebox('getValue')];
+			if (name != 'clear') {	// clear表示不指定字段表
+				kw[name] = value;
+			}
+			kw['mtime'] = [$('#dt1').datetimebox('getValue'), $('#dt2').datetimebox('getValue')];
 			console.log(kw);
 			$("#dg").datagrid("load", kw);
 		}
@@ -35,12 +37,12 @@
 	## 需要重写这个模块，以便增加一个穿越时间字段
 	<div style="float:right; padding:0px;display:inline-block">
 		<div class="easyui-tooltip" title="不选表示不指定" style="display:inline-block">时间段：</div>
-		<input id="dt" class="easyui-datetimebox" lable="穿越到：" labelPosition="left">
+		<input id="dt1" class="easyui-datetimebox" lable="穿越到：" labelPosition="left">
 		<input id="dt2" class="easyui-datetimebox" lable="穿越到：" labelPosition="left">
 		## 注意此处，需要关联修改菜单！只有穿越时间为空时（默认，表示展示的每笔记录的最大值 ），才可以修改或删除）
 		<input id="search" class="easyui-searchbox" value="" style="width:250px;" prompt='根据相应字段模糊查询' searcher="search2"
-			menu="#mm" data-options="icons:[{iconCls:'icon-clear', handler: function(e) {$(e.data.target).searchbox('clear'); $(e.data.target).searchbox('selectName','clear');
-				$('#dg').datagrid('load', {'mtime':[$('#dt').datebox('getValue'), $('#dt2').datebox('getValue')]});} }] ">
+			menu="#mm" data-options="icons:[{iconCls:'icon-clear', handler: function(e) {$(e.data.target).searchbox('clear'); $(e.data.target).searchbox('selectName','clear'); $('#dt1').datetimebox('clear');$('#dt2').datetimebox('clear');
+				$('#dg').datagrid('load', {});} }] ">
 		<div id="mm">
 			<div data-options="name: 'clear'">请选择字段</div> <!--不指定字段-->
 			% for col in this.table_class['desc'][:9]:

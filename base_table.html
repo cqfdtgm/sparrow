@@ -41,7 +41,7 @@
 							var person = {
 								search: function (value, name) {
 									var kw = {};
-									if (name != '请选择字段') {
+									if (name != 'clear') {
 										kw[name] = value;
 									}
 									$("#dg").datagrid("load", kw);
@@ -55,7 +55,7 @@
 							##% for col in getattr(cfg.db1, _real_table)['desc'][:9]:
 							<div data-options="name: 'clear'">请选择字段</div> <!--不指定字段-->
 							% for col in table_class['desc'][:9]:
-							<div data-options="name: '${col[0]}_no_use'">${col[0]}</div>
+							<div data-options="name: '${col[0]}'">${col[0]}</div>
 							% endfor
 						</div>
 					</div>

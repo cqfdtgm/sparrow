@@ -20,9 +20,11 @@
 
 <%block name="toolsearch">
 	<script language="javascript">
-		function search2(value, name) {
+		function searcher(value, name) {
 			var kw = {};
-			kw[name] = value;
+			if (name!='clear') {
+				kw[name] = value;
+			}
 			kw['mtime'] = $('#dt').datetimebox('getValue');
 			console.log(kw);
 			$("#dg").datagrid("load", kw);
@@ -33,12 +35,15 @@
 		<div class="easyui-tooltip" title="编辑时不能穿越" style="display:inline-block">穿越到：</div>
 		<input id="dt" class="easyui-datetimebox" lable="穿越到：" labelPosition="left">
 		## 注意此处，需要关联修改菜单！只有穿越时间为空时（默认，表示展示的每笔记录的最大值 ），才可以修改或删除）
-		<input id="search" class="easyui-searchbox" value="" style="width:250px;" prompt='根据相应字段模糊查询' searcher="search2"
-			menu="#mm" data-options="icons:[{iconCls:'icon-clear', handler: function(e) {$(e.data.target).searchbox('clear'); $(e.data.target).searchbox('selectName', 'clear')
-				$('#dg').datagrid('load', {'mtime':$('#dt').datebox('getValue')});} }] ">
+		<input id="search" class="easyui-searchbox" value="" style="width:250px;" prompt='根据相应字段模糊查询' searcher="searcher"
+			menu="#mm" data-options="icons:[{iconCls:'icon-clear', handler: function(e) {$(e.data.target).searchbox('clear'); $(e.data.target).searchbox('selectName', 'clear');$('#dt').datetimebox('clear');
+				$('#dg').datagrid('load', {});} }] ">
 		<div id="mm">
-			<div id='mm1' data-options="name: 'clear'">请选择字段</div> <!--不指定字段-->
+			<div data-options="name: 'clear'">请选择字段</div> <!--不指定字段-->
 			% for col in this.table_class['desc'][:9]:
+			## <div data-options="name: '${col[0]}_1'">${col[0]}_2</div>
+			## 这儿用法有坑！如果data-options里面的属性名称取为name的情况下，最后提交的表单，字段名称就是1，而2只是起显示作用。如果name换为kind，或其他，则提交后的字段名称就是2，1不起作用。相当于name默认为后面2的内容
+			## 但是只有在有name名的情况下，才能使用selectName接口。
 			<div data-options="name: '${col[0]}'">${col[0]}</div>
 			% endfor
 		</div>
