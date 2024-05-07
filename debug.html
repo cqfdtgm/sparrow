@@ -10,7 +10,7 @@
 <body>
 <%include file="menu.html" />
 <h2>cherrypy.session (${len(onlines)})</h2>
-    % for key,value in onlines.items(): ## 在线使用直接的命名空间
+    % for key,value in this.onlines.items(): ## 在线使用直接的命名空间
     <table class="easyui-datagrid" title="${key}:${value.get('name','访客')}" style="width:700px;height:250px" data-options="singleSelect:true,collapsible:true">
 	    <thead><tr>
 		    <th data-options="field:'key'">key</th>
@@ -31,7 +31,7 @@
 	<th data-options="field:'values' ">value</th>
 </tr> </thead>
 <tbody>
-% for k, v in os.environ.items():
+% for k, v in this.os.environ.items():
 ##<tr><td>${k}</td><td>$v.decode('gb2312').encode('utf8')</td></tr>
 <tr><td>${k}</td><td>${v|h}</td></tr>
 % endfor
@@ -46,7 +46,7 @@
 			<th data-options="field:'_initialized' ">value</th>
 	</tr> </thead>
 	<tbody>
-		% for th in threading.enumerate():
+		% for th in this.threading.enumerate():
 	##<tr><td>${k}</td><td>$v.decode('gb2312').encode('utf8')}</td></tr>
 	<tr><td>${th._name}</td><td>${th._initialized}</td></tr>
 	% endfor
@@ -61,7 +61,7 @@
 			<th data-options="field:'values' ">value</th>
 	</tr> </thead>
 	<tbody>
-		% for k, v in cherrypy.request.headers.items():
+		% for k, v in this.cherrypy.request.headers.items():
 	##<tr><td>${k}</td><td>$v.decode('gb2312').encode('utf8')}</td></tr>
 	<tr><td>${k}</td><td>${str(v)|h}</td></tr>
 	% endfor
@@ -76,7 +76,7 @@
 			<th data-options="field:'values' ">value</th>
 	</tr> </thead>
 	<tbody>
-		% for k, v in cherrypy.response.headers.items():
+		% for k, v in this.cherrypy.response.headers.items():
 	##<tr><td>${k}</td><td>$v.decode('gb2312').encode('utf8')}</td></tr>
 	<tr><td>${k}</td><td>${str(v)|h}</td></tr>
 	% endfor
@@ -90,7 +90,7 @@
 			<th data-options="field:'values' ">value</th>
 	</tr> </thead>
 	<tbody>
-		% for k, v in cherrypy.request.wsgi_environ.items():
+		% for k, v in this.cherrypy.request.wsgi_environ.items():
 	##<tr><td>${k}</td><td>$v.decode('gb2312').encode('utf8')}</td></tr>
 	<tr><td>${k}</td><td>${str(v)|h}</td></tr>
 	% endfor

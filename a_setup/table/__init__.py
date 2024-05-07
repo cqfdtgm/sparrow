@@ -22,9 +22,9 @@ class default(parent):
         #    cherrypy.session['_table'] = kw.pop(table)
         # self._dic['_table'] = self._dic['table_form'] = cherrypy.session['_table']
         # 不在session中保存当前表名， 而在客户端页面保存，以便session失效时，也能正确展示页面。需要在页面中各种URL地方添加_table关键字后缀。
-        self.dct['_real_table'] = self.dct['table'] = kw.pop('table', self.table)
-        self.dct['table_kind'] = name
-        self.dct['table_class'] = getattr(self.db, self.dct['table'])
+        # self.dct['_real_table'] = self.dct['table'] = kw.pop('table', self.table)
+        # self.dct['table_kind'] = name
+        # self.dct['table_class'] = getattr(self.db, self.dct['table'])
 
     def select(self, *k, **kw):
         """自定义Get, 为了增加对q参数的处理"""

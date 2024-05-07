@@ -5,7 +5,7 @@ import os
 import os.path
 # import pytest
 import sys
-# import threading
+import threading
 
 from mako.lookup import TemplateLookup
 # from cherrypy.test import helper
@@ -46,6 +46,12 @@ class default:
     db_type, connect_str = private.conn_pg15
     db_type, connect_str = private.conn_sqlite_1
 
+    onlines = sparrows.Session.onlines
+
+    cherrypy = cherrypy
+    os = os
+    threading = threading
+
     def __del__(self):
         # if 'db' in self.__dict__:
         #    self.db.commit()
@@ -60,7 +66,7 @@ class default:
             kw[key.lower()] = kw.pop(key)   # 把所有路径以及关键字转变为小写
         self.k = [i.lower() for i in k]
         self.kw = kw
-        self.dct = sparrows.dct.copy()
+        # self.dct = sparrows.dct.copy()
         # self.dct['table'] = self.table = kw.pop('table', self.table)
         # self.dct['table_class'] = getattr(self.db, self.dct['table'])
         # self.dct['sparrow'] = sparrows
@@ -86,7 +92,7 @@ class default:
             # self.dct['table_class'] = getattr(self.db, self.dct['table'])
             # print('dct:', self.dct)
             result = getattr(self, func)(*self.k[1:], **self.kw)
-            yield TemplateLookup(self.dirs).get_template(func + '.html').render(this=self, **self.dct)
+            yield TemplateLookup(self.dirs).get_template(func + '.html').render(this=self)
         elif func in self.setup_methods:
             result = getattr(self, func)(*self.k[1:], **self.kw)
             yield from result
@@ -261,14 +267,14 @@ class default:
     def log(self, *k, **kw):
         # 为了不影响其他菜单中的链接，table不加后缀，而是在HTML模板中装载数据的地方加后缀。
         # self.dct['table'] = self.table = kw.pop('table', self.table)
-        self.dct['table_class'] = getattr(self.db, self.table + '_log')
+        # self.dct['table_class'] = getattr(self.db, self.table + '_log')
         self.table_class = getattr(self.db, self.table + '_log')
 
     def login(self, *k, **kw):
         pass
 
     def users(self, *k, **kw):
-        self.dct['table_class'] = getattr(self.db, self.table)
+        # self.dct['table_class'] = getattr(self.db, self.table)
         self.table_class = getattr(self.db, self.table)
 
 

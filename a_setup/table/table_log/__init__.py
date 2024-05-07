@@ -89,3 +89,5 @@ class default(parent):
 
     def log(self, *k, **kw):
         self.table_class = getattr(self.db, self.table)
+
+__import__(__name__, {}, {}, [x.split('.')[0] for x in os.listdir(__name__.replace('.', os.sep))])

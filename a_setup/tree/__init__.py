@@ -1,5 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-# $Header: D:\\RCS\\E\\dragonfly\\0_setup\\0_config\\__init__.py,v 1.0 2015-09-25 10:19:30+08 tgm Exp tgm $
+# \a_setup\tree\__init__.py
 
 import os
 from .. import default as parent
@@ -89,8 +89,3 @@ class default(parent):
 
 
 __import__(__name__, {}, {}, [x.split('.')[0] for x in os.listdir(__name__.replace('.', os.sep))])
-
-# $Log: __init__.py,v $
-# Revision 1.0  2015-09-25 10:19:30+08  tgm
-# Initial revision
-#

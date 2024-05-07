@@ -7,7 +7,7 @@
 
 <div data-options="region:'west',split:true,title:'easyui demo'" style="width:132px;padding-left:0px;overflow-x:auto;overflow-y:visible" id="left1">
     <ul class="easyui-datalist" title="目录列表" lines="true">
-    %for dir in dirs:
+    %for dir in this.demo_dirs:
     <li><a href="${dir}" target="easyui_demo" class="easyui-linkbutton" data-options="plain:true" style="display:block;align:left;border:0">${dir}</a></li>
     %endfor
     </ul>
@@ -17,7 +17,7 @@
 
     <div class="easyui-layout" data-options="title:'test',fit:true,width:'100%'">
         <div data-options="region:'west',title:'文件列表'" style="width:182px;overflow:visible">
-        <iframe scrolling="visible" id="easyui_demo" name="easyui_demo" frameborder="0" src="${dirs and dirs[0] or ''}" style="height:100%;overflow:none;width:100%">
+        <iframe scrolling="visible" id="easyui_demo" name="easyui_demo" frameborder="0" src="${this.demo_dirs and this.demo_dirs[0] or ''}" style="height:100%;overflow:none;width:100%">
         </iframe> 
        </div>
 

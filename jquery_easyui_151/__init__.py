@@ -25,13 +25,13 @@ class default(default_):
         super(default, self).__init__(*k, **kw)
 
     def default(self, *k, **kw):
-        for _, self.dct['dirs'], _ in os.walk(self.dirs[0] + '\\demo', True):
+        for _, self.demo_dirs, _ in os.walk(self.dirs[0] + '\\demo', True):
             break  # 巧取一级目录列表，用os.listdir的话要排除文件
 
     def dir(self, *k, **kw):
         dirs = os.sep.join((self.dirs[0], 'demo', k[0]))
-        self.dct['dir'] = k[0]
-        for _, _, self.dct['files'] in os.walk(dirs):
+        self.dir = k[0]
+        for _, _, self.files in os.walk(dirs):
             break
 
     def _download(self, path=""):
