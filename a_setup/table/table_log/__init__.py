@@ -29,10 +29,11 @@ class default(parent):
 
     def __init__(self, *k, **kw):
         
+        self.table_kind = name
         super(default, self).__init__(*k, **kw)
-        self.dct['_real_table'] = self.dct['table'] = kw.pop('table', self.table)
-        self.dct['table_kind'] = name
-        self.dct['table_class'] = getattr(self.db, self.dct['table'])
+        # self.dct['_real_table'] = self.dct['table'] = kw.pop('table', self.table)
+        # self.dct['table_kind'] = name
+        #　self.dct['table_class'] = getattr(self.db, self.dct['table'])
 
     def select(self, m_time=None, **kw):
         """重写select，以便取得指定日期之前的，最大修改日期的副本。
@@ -68,7 +69,7 @@ class default(parent):
     def delete(self, id):
         """重写delete，删除只是生成一笔状态为删除的新记录"""
 
-        result = self.db.select(self.dct['table'], id=id)
+        result = self.db.select(self.table, id=id)
         kw = result['rows'][0]
         kw.pop('id')
         kw['mtime'] = datetime.datetime.now()
@@ -83,8 +84,8 @@ class default(parent):
         kw['state'] = '有效'
         kw['action'] = '增加'
         kw['mtime'] = datetime.datetime.now()
-        kw['did'] = self.db.max(table=self.dct['table'], column='did') + 1
+        kw['did'] = self.db.max(table=self.table, column='did') + 1
         return super().insert(**kw)
 
     def log(self, *k, **kw):
-        pass
+        self.table_class = getattr(self.db, self.table)

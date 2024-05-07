@@ -23,9 +23,9 @@ class default(default):
         #    cherrypy.session['_table'] = kw.pop(table)
         # self._dic['_table'] = self._dic['table_form'] = cherrypy.session['_table']
         # 不在session中保存当前表名， 而在客户端页面保存，以便session失效时，也能正确展示页面。需要在页面中各种URL地方添加_table关键字后缀。这样同一用户打开多个页面时也不会互相冲突。
-        self._dic['_real_table'] = self._dic['_table'] = kw.pop('_table', 'cfg_tables')
-        self._dic['table_kind'] = name
-        self._dic['table_class'] = getattr(self.db, self._dic['_table'])
+        # self._dic['_real_table'] = self._dic['_table'] = kw.pop('_table', 'cfg_tables')
+        # self._dic['table_kind'] = name
+        #　self._dic['table_class'] = getattr(self.db, self._dic['_table'])
 
 __import__(__name__, {}, {}, [x.split('.')[0] for x in os.listdir(__name__.replace('.', os.sep))])
 

@@ -29,9 +29,10 @@ class default(parent):
         # if 'table_tree' in kw:  # 通过右上角的"更改目标表"更改了表.
         #    cherrypy.session['table_tree'] = kw.pop('table_tree')
         # self._dic['table'] = self._dic['table_form'] = cherrypy.session['table_tree']
-        self.dct['_real_table'] = self.dct['table'] = kw.pop('table', self.table)
-        self.dct['table_kind'] = name
-        self.dct['table_class'] = getattr(self.db, self.dct['table'])
+        self.table_kind = name
+        # self.dct['_real_table'] = self.dct['table'] = kw.pop('table', self.table)
+        # self.dct['table_kind'] = name
+        # self.dct['table_class'] = getattr(self.db, self.dct['table'])
 
     def delete(self, id):
         """为了做额外处理，拦截delete请求"""
@@ -40,7 +41,7 @@ class default(parent):
             return {'isError': True, 'title': '错误', 'msg': "必须先删除下级节点"}
         parent_id = self.db.select(self.table, id=id)['rows'][0]['parentid']
         # result = super(default, self).delete(id)
-        self.db.delete(self.dct['table'], id)
+        self.db.delete(self.table, id)
         if not self.db.count(self.table, parentid=parent_id):
             self.db.update(self.table, parent_id, state='open')
         return {'success': True}

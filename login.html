@@ -25,10 +25,10 @@
 	<div style="margin-bottom:20px">
 	<input name="phone" id="phone" class="easyui-textbox" label="手机号码" style="width:300px;height:40px;padding:12px" data-options="prompt:'手机号码',BBiconCls:'icon-man',iconWidth:38,required:true,buttonText:'发送验证码',buttonIcon:'icon-man', onClickButton:sendMsg
 	" validType="length[11,11]" prompt="手机号码长度为11位数字" invalidMessage="为保持登陆唯一，本系统采用手机号码作为用户名" missingMessage="手机号码必须输入"
-	    %if 'user' in _sess:
-	    value = "${_sess['user']['phone']}" readonly
+	    %if 'user' in this._sess:
+	    value = "${this._sess['user']['phone']}" readonly
 	    %else:  #if _sess['state']=='offline':
-	    value = "${_sess.get('phone','')}"
+	    value = "${this._sess.get('phone','')}"
 	    %endif
 	    >
 	</div>
@@ -114,7 +114,7 @@
 </div>
 ##${nofin:wd}
 <div style="text-align:center;margin-bottom:10px;padding:10px 10px 10px 10px">
-    % if 'user' not in _sess:
+    % if 'user' not in this._sess:
     <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" style="width:150px;padding:5px 0px" onclick="$('#password').textbox({'required':true});if($('#login_form').form('validate')) { document.login_form.sub.value='登录';document.login_form.submit();}" title="汉字算1个字符长度"><span style="font-size:14px">登录</span></a>
     <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" style="width:150px;padding:5px 0px" onclick="$('#login_form').form('clear');" title="清除输入内容"> <span style="font-size:14px;">复位</span> </a>
     % else: 
@@ -134,7 +134,7 @@
                 <th field="f">f</th>
             </tr>
         </thead> <tbody>
-            <tr><td>用户名</td><td>${_sess['user']['name']}</td>
+            <tr><td>用户名</td><td>${this._sess['user']['name']}</td>
                 <td>用户序号</td><td>${user['id']}(可用于快速登录)</td>
                 <td>手机号码</td><td>${user['phone']}</td>
             </tr>

@@ -21,7 +21,15 @@ name = 'homepage'
 
 
 class default:
-    exposed = True
+
+    exposed = True  #  cherrypy需要以此表示可发布
+
+    charset = 'utf8'    # 网页编码，一般全局不需要改变
+
+    title = 'sparrow based on cherrypy, mako,sqlite3'   # 网页titile
+
+    easyui = '/js/9_easyui' # easyui脚本URL地址
+
     file = __file__
     
     """模板搜索路径列表
@@ -53,10 +61,12 @@ class default:
         self.k = [i.lower() for i in k]
         self.kw = kw
         self.dct = sparrows.dct.copy()
-        self.dct['table'] = self.table = kw.pop('table', self.table)
-        self.dct['table_class'] = getattr(self.db, self.dct['table'])
-        self.dct['sparrow'] = sparrows
-        self.dct['_sess'] = self.sess = sparrows.Session()
+        # self.dct['table'] = self.table = kw.pop('table', self.table)
+        # self.dct['table_class'] = getattr(self.db, self.dct['table'])
+        # self.dct['sparrow'] = sparrows
+        # self.dct['_sess'] = self.sess = sparrows.Session()
+        self._sess = self.sess = sparrows.Session()
+        self.table = self.kw.pop('table', self.table)
 
     def __iter__(self):
         print('k,kw @ __iter__', self.k, self.kw)
@@ -98,12 +108,6 @@ class default:
             self.__dict__['_db'] = dbapi.init(self.db_type, self.connect_str)
         return self.__dict__['_db']
 
-    @property
-    def table_class(self):
-        table = getattr(self.db, self.table)
-        print('table_class', table)
-        return table
-
     # 返回json数据的方法列表，基本都是取自数据库
     json_methods = ['select', 'update', 'delete', 'insert', 'tree', 'pop', 'directory', 'dnd']
 
@@ -140,7 +144,7 @@ class default:
         return result
 
     def delete(self, id):
-        self.db.delete(self.dct['table'], id)
+        self.db.delete(self.table, id)
         return dict(success=True)
 
     def dnd(self, id="", targetid="", point="", max_children=3):
@@ -180,8 +184,8 @@ class default:
         """插入新记录，成功的话，返回新记录的字典"""
 
         kw.pop('isnewrecord', 'true')  # easyui 的框架在新增时会传这个参数
-        new_id = self.db.insert(self.dct['table'], **kw)
-        res = self.db.select(self.dct['table'], id=new_id)
+        new_id = self.db.insert(self.table, **kw)
+        res = self.db.select(self.table, id=new_id)
         return res['rows'][0]
 
     def select(self,  sort="", order="", rows=10, page=1, *k, **kw):
@@ -194,11 +198,11 @@ class default:
             c = zip(sort.split(','), order.split(','))
             order = ','.join(' '.join(d) for d in c)
         # print('locals @ sparrow.select:', locals())
-        result = self.db.select(self.dct['table'], order=order, rows=rows, page=page, **kw)
+        result = self.db.select(self.table, order=order, rows=rows, page=page, **kw)
         res = {'rows': result['rows'], 'total': len(result['rows']), 'pagesize': rows, 'pagenumber': page}
         if page > 1 or res['total'] == rows:
             # 并非一页能放完的，需要取真正的总数，以便能显示页数和翻页
-            res['total'] = self.db.count(self.dct['table'], **kw)
+            res['total'] = self.db.count(self.table, **kw)
         return res
 
     def tree(self, id=0, depth=1, rows=3, page=1, **kw):
@@ -239,8 +243,8 @@ class default:
     def update(self, id=None, **kw):
         """更新记录，返回更新后的记录的字典"""
         kw.pop('isnewrecord', 'true')  # easyui 的框架在新增时会传这个参数
-        self.db.update(self.dct['table'], id, **kw)
-        return self.db.select(self.dct['table'], id=id)['rows'][0]
+        self.db.update(self.table, id, **kw)
+        return self.db.select(self.table, id=id)['rows'][0]
 
 
     # 返回模板内容的方法列表，目录下有同名的html文件
@@ -249,21 +253,23 @@ class default:
         pass
 
     def default(self, *k, **kw):
-        pass
+        self.table_class = getattr(self.db, self.table)
 
     def edit(self, *k, **kw):
-        pass
+        self.table_class = getattr(self.db, self.table)
 
     def log(self, *k, **kw):
         # 为了不影响其他菜单中的链接，table不加后缀，而是在HTML模板中装载数据的地方加后缀。
         # self.dct['table'] = self.table = kw.pop('table', self.table)
-        self.dct['table_class'] = getattr(self.db, self.dct['table'] + '_log')
+        self.dct['table_class'] = getattr(self.db, self.table + '_log')
+        self.table_class = getattr(self.db, self.table + '_log')
 
     def login(self, *k, **kw):
         pass
 
     def users(self, *k, **kw):
-        self.dct['table_class'] = getattr(self.db, self.dct['table'])
+        self.dct['table_class'] = getattr(self.db, self.table)
+        self.table_class = getattr(self.db, self.table)
 
 
 # 在每个包的末尾，手工导入下级各个目录，注意，不导入.py文件，各目录名称也在8个字符以内，不含'.'字符。

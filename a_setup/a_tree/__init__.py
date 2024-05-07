@@ -21,10 +21,10 @@ class default(pardefault):
         cherrypy.session.setdefault('_table_atree', 'users_org')
         """
         """
-        self._dic['_table'] = cherrypy.session['_table_atree'].split('_')[0] 
-        self._dic['_table_atree'] = '_'.join(sorted(cherrypy.session['_table_atree'].split('_')))
-        self._dic['table_form'] = cherrypy.session['_table_atree']
-        self._dic['_table_z'] = cherrypy.session['_table_atree'].split('_')[1] 
+        # self._dic['_table'] = cherrypy.session['_table_atree'].split('_')[0] 
+        # self._dic['_table_atree'] = '_'.join(sorted(cherrypy.session['_table_atree'].split('_')))
+        # self._dic['table_form'] = cherrypy.session['_table_atree']
+        # self._dic['_table_z'] = cherrypy.session['_table_atree'].split('_')[1] 
         """
         print('K, KW', k, kw)
         self.dct['_table'] = table_az = self._kw.pop('_table', 'users_org')
