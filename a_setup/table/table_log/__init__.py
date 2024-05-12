@@ -11,8 +11,6 @@ import os
 
 from .. import default as parent
 
-name = "单表自带日志"
-
 
 class default(parent):
     """
@@ -25,11 +23,13 @@ class default(parent):
     比较适用于员工资料，通讯录，固定资产资料等一些场景。
     """
     dirs = [os.path.dirname(__file__)] + parent.dirs
+    name = "单表自带日志"
+
     table = 'users_log'
 
     def __init__(self, *k, **kw):
         
-        self.table_kind = name
+        # self.table_kind = name
         super(default, self).__init__(*k, **kw)
         # self.dct['_real_table'] = self.dct['table'] = kw.pop('table', self.table)
         # self.dct['table_kind'] = name

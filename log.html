@@ -13,8 +13,7 @@
 			var hei = $(window).height() - 120;
 			console.log('hei', hei);
 			$('#dg').datagrid({
-				//url: 'select?table=${table}&_log=true'
-				url: 'select?table=${table}_log&sort=id&order=desc'
+				url: 'select?table=${this.table}_log&sort=id&order=desc'
 				, pagePosition: top
 				//,height:500
 				//,height:hei

@@ -4,8 +4,6 @@
 import os
 from .. import default as parent
 
-name = 'Tree表设置'
-
 
 class default(parent):
     """tree表的基本字段要求　：id 自增主键        parentid 上级id
@@ -17,6 +15,7 @@ class default(parent):
 
     dirs = [os.path.dirname(__file__)] + parent.dirs
     table = 'org'
+    name = 'Tree表设置'
 
     MAX_CHILDREN = 10    # 下级数量限制，如果实现了翻页，下级数量不需要限制了。
     PAGESIZE = 4
@@ -29,7 +28,7 @@ class default(parent):
         # if 'table_tree' in kw:  # 通过右上角的"更改目标表"更改了表.
         #    cherrypy.session['table_tree'] = kw.pop('table_tree')
         # self._dic['table'] = self._dic['table_form'] = cherrypy.session['table_tree']
-        self.table_kind = name
+        # self.table_kind = name
         # self.dct['_real_table'] = self.dct['table'] = kw.pop('table', self.table)
         # self.dct['table_kind'] = name
         # self.dct['table_class'] = getattr(self.db, self.dct['table'])

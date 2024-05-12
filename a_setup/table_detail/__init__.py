@@ -5,11 +5,11 @@ import os
 
 # import cfg
 
-name = '数据网格视图'
-
 from .. import default
 class default(default):
     dirs = [os.path.dirname(__file__)] + default.dirs
+    name = '数据网格视图'
+
     def __init__(self, *k, **kw):
         kw.setdefault('_table', 'gbook')
         super(default, self).__init__(*k, **kw)

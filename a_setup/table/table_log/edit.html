@@ -6,7 +6,7 @@
         $(function () {
             $('#dt').datebox('disable');    // 编辑界面，只能对最新数据，所以隐藏穿越按钮
             $('#dg').edatagrid({
-                url: 'select?table=${table}&partition=did&partition_by=mtime desc'
+                url: 'select?table=${this.table}&partition=did&partition_by=mtime desc'
                 , singleSelect: true
                 //,onLoadSuccess:function() {
                 //  $.mobile.go('#p0');

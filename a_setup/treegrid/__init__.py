@@ -5,16 +5,16 @@ import os
 
 # import cfg
 
-from .. import default
+from .. import default as parent
 from ... import tools
 
-name = '树形数据网格'
 
-
-class default(default):
-    dirs = [os.path.dirname(__file__)] + default.dirs
+class default(parent):
+    dirs = [os.path.dirname(__file__)] + parent.dirs
     file = __file__
-    _table = 'gbook'
+    name = '树形数据网格'
+
+    table = 'gbook'
 
     def __init__(self, *k, **kw):
         # kw.setdefault('_table','gbook')
@@ -27,11 +27,11 @@ class default(default):
         #self._dic['_real_table'] = self._dic['_table'] = kw.pop('_table','gbook')
         #self._dic.setdefault('_table', kw['_table'])
         #self._dic.setdefault('_real_table', kw['_table'])
-        self.dct['_real_table'] = self.dct['_table'] = kw.pop('_table', self._table)
-        self.dct['table_kind'] = name
-        self.dct['table_class'] = getattr(self.db, self.dct['_table'])
+        # self.dct['_real_table'] = self.dct['_table'] = kw.pop('_table', self._table)
+        # self.dct['table_kind'] = name
+        # self.dct['table_class'] = getattr(self.db, self.dct['_table'])
 
-    def Get(self, *k, **kw):
+    def select(self, *k, **kw):
         """自定义Get, 为了处理q参数
              test tset """
 
@@ -83,7 +83,7 @@ class default(default):
         else:   
             return result
 
-    def Save(self, *k, **kw):
+    def insert(self, *k, **kw):
         """为了保存path信息， 拦截Save请求并添加path字段。"""
 
         kw['name'] = self._sess.get('user','')
@@ -97,8 +97,8 @@ class default(default):
                 kw['path'] = '%s.%s' % (parent['path'],parent['id'])
         return super(default, self).Save(*k, **kw)
 
-    def Update(self, *k, **kw):
-        result = super(default, self).Update(*k, **kw)
+    def update(self, *k, **kw):
+        result = super().insert(*k, **kw)
         print('Update for ', kw, result)
         return result
 

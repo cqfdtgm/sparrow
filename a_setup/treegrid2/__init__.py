@@ -5,14 +5,14 @@ import os
 
 # import cfg
 
-name = '树形数据网格2'
 # 现场修改的版本，适合各字段都是简单的数字的情况
 
 from .. import default
 class default(default):
-    _dirs = [os.path.dirname(__file__)] + default.dirs
+    dirs = [os.path.dirname(__file__)] + default.dirs
     __file__ = __file__
-    _table = 'book'
+    table = 'book'
+    name = '树形数据网格2'
 
     def __init__(self, *k, **kw):
         kw.setdefault('_table','gbook')

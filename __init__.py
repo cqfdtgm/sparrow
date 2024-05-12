@@ -17,16 +17,17 @@ from . import tools
 
 mako.runtime.UNDEFINED = 'UNDEFINED'
 
-name = 'homepage'
-
 
 class default:
+    """文档字符串，会详细描述本应用的方法接口，数据库表基本规范字段要求等"""
 
     exposed = True  #  cherrypy需要以此表示可发布
 
     charset = 'utf8'    # 网页编码，一般全局不需要改变
 
-    title = 'sparrow based on cherrypy, mako,sqlite3'   # 网页titile
+    name = '小麻雀'   # 简洁名称，用于在左边菜单中展示，默认会为目录名称
+
+    title = '麻雀虽小，五脏俱全 - 基于cherrypy, mako,sqlite3的透明数据管理系统'   # 网页titile
 
     easyui = '/js/9_easyui' # easyui脚本URL地址
 
@@ -132,7 +133,7 @@ class default:
                 del dirs[:]
                 continue
             mod = sys.modules['.'.join(root.split(os.sep)[1:])]
-            dic = tree_dic[package] = dict(children=[], text=getattr(mod, 'name', os.path.basename(root)))
+            dic = tree_dic[package] = dict(children=[], text=mod.default.name)
             if root == os.path.dirname(os.path.abspath(__file__)):
                 dic['id'] = 1
                 dic['url'] = '/login'

@@ -5,11 +5,11 @@ import os
 
 # import cfg
 
-name = 'A-A关系设置'
-
 from .. import default
 class default(default):
     dirs = [os.path.dirname(__file__)] + default.dirs
+    name = 'A-A关系设置'
+
     def __init__(self, *k, **kw):
         kw.setdefault('_table', 'auth_role')
         super(default, self).__init__(*k, **kw)
@@ -30,7 +30,7 @@ class default(default):
         self.dct['_table_az'] = '_'.join(sorted(table_az.split('_')))
         self._table_az = self._kw.pop('_table_az','_table_a')    # 判断本次Get是取哪个数据 
         self.dct['_real_table'] = self.dct[self._table_az] # 真实表必须更新成为table_a表，以表在表发生chg或是点击上面的菜单切换时，log模板可以正确展示字段 。
-        self.dct['table_kind'] = name
+        # self.dct['table_kind'] = name
 
     def Get(self, *k, **kw):
         """自定义Get, 为了增加对q参数的处理"""

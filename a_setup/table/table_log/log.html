@@ -13,7 +13,7 @@
 		}
 		$(function () {
 			$('#dg').datagrid({
-				url: 'select?table=${table}&sort=id&order=desc'
+				url: 'select?table=${this.table}&sort=id&order=desc'
 				//,onLoadSuccess:function () {	// 能在这儿控制是否显示编辑按钮或可用不？当穿越时间为空或大于当前时间时，才可以修改
 				//  $.mobile.go('#p0');
 				//}

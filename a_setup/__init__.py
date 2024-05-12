@@ -6,11 +6,11 @@ import cherrypy
 
 from .. import default as pardefault
 
-name = '系统设置'
-
 
 class default(pardefault):
     dirs = [os.path.dirname(__file__)] + pardefault.dirs
+    name = '系统设置'
+
     file = __file__
 
     def __init__(self, *k, **kw):

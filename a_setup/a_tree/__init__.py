@@ -6,12 +6,12 @@ import os
 # import cfg
 from .. import default as pardefault
 
-name = 'A-T关系设置'
-
 
 class default(pardefault):
     dirs = [os.path.dirname(__file__)] + pardefault.dirs
     file = __file__
+
+    name = 'A-T关系设置'
 
     def __init__(self, *k, **kw):
         kw.setdefault('_table', 'users_org')

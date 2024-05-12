@@ -18,8 +18,7 @@
 					var hei = $(window).height() - 120;
 					console.log('hei', hei);
 					$('#dg').datagrid({
-						//url: 'select?table=${table}&_log=true'
-						url: 'select?table=${table}&sort=id&order=desc'
+						url: 'select?table=${this.table}&sort=id&order=desc'
 						, pagePosition: top
 						//,height:500
 						//,height:hei
@@ -34,7 +33,7 @@
 
 		<%block name="body_11"> <!-- grid的主显示区域，表格id:dg-->
 			<div style="height:100%">
-				<ul id="tr" data-options="createUrl:'insert?table=${table}', updateUrl:'update?table=${table}', destroyUrl:'delete?table=${table}', dndUrl:'dnd?table=${table}', fit:true, Url:'tree?table=${table}'">
+				<ul id="tr" data-options="createUrl:'insert?table=${this.table}', updateUrl:'update?table=${this.table}', destroyUrl:'delete?table=${this.table}', dndUrl:'dnd?table=${this.table}', fit:true, Url:'tree?table=${this.table}'">
 				</ul>
 			</div>
 		</%block> <!--body11 end-->
