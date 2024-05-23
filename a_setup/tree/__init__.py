@@ -6,11 +6,12 @@ from .. import default as parent
 
 
 class default(parent):
-    """tree表的基本字段要求　：id 自增主键        parentid 上级id
+    """tree表的基本字段要求: id 自增主键        parentid 上级id
     text 名称     state 状态字段，有下级时为closed，无下级为open
     path 路径，可选字段，为点字符连接的从根（０）记录到本记录的路径
+    display 同级显示顺序，新增加的最大，同级拖动时会改变。
     level 层级，可选字段，其中可视为path中连接符号点的数量
-    注意，初始中并不存在id为０的记录，但parentid=0表示本记录是顶层记录
+    注意，初始中并不存在id为0的记录,但parentid=0表示本记录是顶层记录
     """
 
     dirs = [os.path.dirname(__file__)] + parent.dirs
@@ -68,23 +69,6 @@ class default(parent):
         if par > 0:     # 不是顶级目录，父记录的状态要置为可打开。
             self.db.update(self.table, par, state='closed')
         return super(default, self).insert(**kw)
-
-    def select(self, *k, **kw):
-        """自定义Get, 为了处理q参数"""
-
-        """
-        if kw.pop('_log','') == 'true':
-            kw['table'] = self._dic['table'] + '_log'
-        else:
-            kw['table'] = self._dic.get('_real_table', self._dic['table'])
-            """
-        if 'q' in kw:
-            kwq = kw.pop('q')
-            if kwq.encode().isalpha():  # 是字母, 则对config_tables按表名查找
-                kw['name'] = '%' + kwq + '%'
-            else:
-                kw['name_zh'] = '%' + kwq + '%'
-        return super(default, self).select(*k, **kw)
 
 
 __import__(__name__, {}, {}, [x.split('.')[0] for x in os.listdir(__name__.replace('.', os.sep))])

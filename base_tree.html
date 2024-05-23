@@ -17,9 +17,9 @@
 				$(function () {
 					var hei = $(window).height() - 120;
 					console.log('hei', hei);
-					$('#dg').datagrid({
-						url: 'select?table=${that.table}&sort=id&order=desc'
-						, pagePosition: top
+					$('#tr').etree({
+						url: 'tree?table=${this.table}&sort=id&order=desc'
+						//, pagePosition: top
 						//,height:500
 						//,height:hei
 					});
