@@ -1,14 +1,12 @@
 ﻿## 0_setup/index.html
-<%inherit file="log.html" />
-
-##${parent.body()}
+<%inherit file="base_table.html" />
 
 <%block name="js">
 <!-- block js @ 0_setup\treegrid\default.html -->
 <script type="text/javascript">
    $(function(){
 	$('#dg').treegrid({
-	    url:'select?_table=${_table}' ,lines:true
+	    url:'select?_table=${this.table}' ,lines:true
 	    //,columns: columns
 	    ,idField: 'id' ,treeField: 'id'
 	    , onDblClickRow: function(row) {

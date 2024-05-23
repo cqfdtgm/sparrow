@@ -1,5 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-# $Header: C:\\RCS\\D\\dragonfly\\0_setup\\table\\__init__.py,v 1.0 2017-04-27 10:35:24+08 $
+# /a_setup/table/__init__.py
 
 import os
 # import cfg
@@ -8,6 +8,11 @@ from .. import default as parent
 
 
 class default(parent):
+    """标准表格的管理界面，字段都是透明修改，使用文本编辑器。
+    数据有效性由后台自行管控。
+    建表规范：必须符合关系型数据库的基本要求：有一个id字段，数字，自增，主键，非空。
+    编辑时id字段本身不可编辑或改变。
+    """
     dirs = [os.path.dirname(__file__)] + parent.dirs
     table = 'cfg_tables'
     name = 'A单表设置'

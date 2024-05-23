@@ -1,13 +1,10 @@
 ﻿## 0_setup/user/default.html
 <%inherit file="default.html" />
 
-## ${parent.body()}
- 
-test @ 0_setup\treegrid
-
 <%block name="toolbutton">
 <!-- block toolbutton of edit@0_setup\treegird -->
     ##<a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="javascript:moreBook()">显示全部</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="javascript:$('#tr').etree('create')">追加</a>
     <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="javascript:newBook()">增加</a>
     <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="javascript:edit()">修改</a>
     <a href="#" class="easyui-linkbutton" iconCls="icon-save" plain="true" onclick="javascript:save()">保存</a>

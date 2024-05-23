@@ -44,7 +44,8 @@
                 }
             },
             onSelect: function(node) {
-                if ('children' in node && 'total' in node && node.total>node.children.length) {
+                //if ('children' in node && 'total' in node && node.total>node.children.length) {
+                if (node.total>node.children.length) {
                     $('#pp').remove();
                     tree = this;
                     pp = $('<span id="pp" style="position:relative;top:-6px;right:0px;float:right;display:inline-block"></span>').appendTo(node.target);

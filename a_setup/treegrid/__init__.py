@@ -10,11 +10,25 @@ from ... import tools
 
 
 class default(parent):
+    """树形数据网格
+    既有树形结构，也有平面数据的表格，比较适用于组织机构和人员名单这种应用场景。
+    也可约定最末级才旋转平面数据，非末级都是组织机构。
+    字段要求：
+    id  自增主键
+    parentid   上级id
+    text    名称
+    state   状态，控制树形展开与否(closed, open)
+    可选字段：
+    level   层级
+    path    由id串接起来的从根到本记录的列表，可以方便一些带枝移动或删除的操作
+    其他平面数据字段
+    同时支持tree和grid的各种操作
+    """
     dirs = [os.path.dirname(__file__)] + parent.dirs
     file = __file__
     name = '树形数据网格'
 
-    table = 'gbook'
+    table = 'treegrid_org'
 
     def __init__(self, *k, **kw):
         # kw.setdefault('_table','gbook')
@@ -35,34 +49,13 @@ class default(parent):
         """自定义Get, 为了处理q参数
              test tset """
 
-        # 这个是在什么情况下加的删除输入为空的条件? 会误解呃.
-        """
-        for k, v in list(kw.items()):
-            if v=='':   # 删除输入为空的查询字段，往往是后面几级查询条件
-                kw.pop(k)
-                """
-        if '_table' not in kw:
-            if kw.pop('_log','') == 'true':
-                kw['_table'] = self.dct['_table'] + '_log'
-            else:
-                kw['_table'] = self.dct.get('_real_table', self.dct['_table'])
-        if 'q' in kw:
-            kwq = kw.pop('q')
-            if kwq.encode().isalpha():  # 是字母, 则对config_tables按表名查找
-                kw['name'] = '%'+ kwq + '%'
-            else:
-                kw['name_zh'] = '%' + kwq + '%'
-        # 如果kw里只有'id', 则是以此为父id展开下级记录，否则，是以指定条件查找相应记录
+        # 如果kw里有'id', 则是以此为父id展开下级记录，否则，是以指定条件查找相应记录
         if 'id' in kw:
             kw['parentid'] = kw.pop('id', 0)
-        else:
-            pass
-        print('I am in 0_setup.treegrid', k, kw)
         if kw.get('parentid',0): #展下开级目录，原则上不限制数量，设计应该防止子记录过大
             kw.pop('page',0)
-            #kw.pop('rows',0)
             kw['rows'] = 100
-        result = result2 = super(default, self).Get(*k, **kw)
+        result = super().select(*k, **kw)
         """
         if not kw['parentid']: # 是根记录，展开一层
             #for r in result['rows']:
@@ -86,21 +79,16 @@ class default(parent):
     def insert(self, *k, **kw):
         """为了保存path信息， 拦截Save请求并添加path字段。"""
 
-        kw['name'] = self._sess.get('user','')
-        kw['stime'] = tools._now()
+        # kw['name'] = self.sess.get('user','')
+        # kw['stime'] = tools._now()
         if kw.get('parentid',0):   # 是回复
-            parent = self.Update(_table=self.dct['_table'], id=kw['parentid'], state='closed')
+            parent = self.update(id=kw['parentid'], state='closed')
             # 同时要根据上级记录，更新level和path
             if 'level' in parent:
                 kw['level'] = parent['level'] + 1
             if 'path' in parent:
                 kw['path'] = '%s.%s' % (parent['path'],parent['id'])
-        return super(default, self).Save(*k, **kw)
-
-    def update(self, *k, **kw):
-        result = super().insert(*k, **kw)
-        print('Update for ', kw, result)
-        return result
+        return super().insert(*k, **kw)
 
 
 __import__(__name__, {}, {}, [x.split('.')[0] for x in os.listdir(__name__.replace('.', os.sep))])
