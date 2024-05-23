@@ -3,7 +3,7 @@
 ## 继承自base_table.html
 ## 输入参数：
 ## table_class: 表结构类，含字段名称，类型，拟采用编辑器名称等
-## table: 主表名，由this.table定义，也可带参数改变
+## table: 主表名，由that.table定义，也可带参数改变
 
 <%inherit file="base_table.html" />
 
@@ -13,7 +13,7 @@
 			var hei = $(window).height() - 120;
 			console.log('hei', hei);
 			$('#dg').datagrid({
-				url: 'select?table=${this.table}_log&sort=id&order=desc'
+				url: 'select?table=${that.table}_log&sort=id&order=desc'
 				, pagePosition: top
 				//,height:500
 				//,height:hei

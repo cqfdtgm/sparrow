@@ -9,7 +9,7 @@
 	<script type="text/javascript">
 		$(function () {
 			$('#dg').datagrid({
-				url: 'select?table=${this.table}&partition=did&partition_by=mtime desc'
+				url: 'select?table=${that.table}&partition=did&partition_by=mtime desc'
 				//,onLoadSuccess:function () {	// 能在这儿控制是否显示编辑按钮或可用不？当穿越时间为空或大于当前时间时，才可以修改
 				//  $.mobile.go('#p0');
 				//}
@@ -40,7 +40,7 @@
 				$('#dg').datagrid('load', {});} }] ">
 		<div id="mm">
 			<div data-options="name: 'clear'">请选择字段</div> <!--不指定字段-->
-			% for col in this.table_class['desc'][:9]:
+			% for col in that.table_class['desc'][:9]:
 			## <div data-options="name: '${col[0]}_1'">${col[0]}_2</div>
 			## 这儿用法有坑！如果data-options里面的属性名称取为name的情况下，最后提交的表单，字段名称就是1，而2只是起显示作用。如果name换为kind，或其他，则提交后的字段名称就是2，1不起作用。相当于name默认为后面2的内容
 			## 但是只有在有name名的情况下，才能使用selectName接口。

@@ -3,8 +3,8 @@
 ## 继承自：base.html
 ## 输入参数：
 ## this: py主脚本中的default类
-## this.table_class: 表结构类，含字段名称，类型，拟采用编辑器名称等
-## table: 主表名，由this.table定义，也可带参数改变
+## that.table_class: 表结构类，含字段名称，类型，拟采用编辑器名称等
+## table: 主表名，由that.table定义，也可带参数改变
 
 <%inherit file="base.html" />
 
@@ -18,7 +18,7 @@
 					var hei = $(window).height() - 120;
 					console.log('hei', hei);
 					$('#dg').datagrid({
-						url: 'select?table=${this.table}&sort=id&order=desc'
+						url: 'select?table=${that.table}&sort=id&order=desc'
 						, pagePosition: top
 						//,height:500
 						//,height:hei
@@ -33,7 +33,7 @@
 
 		<%block name="body_11"> <!-- grid的主显示区域，表格id:dg-->
 			<div style="height:100%">
-				<ul id="tr" data-options="createUrl:'insert?table=${this.table}', updateUrl:'update?table=${this.table}', destroyUrl:'delete?table=${this.table}', dndUrl:'dnd?table=${this.table}', fit:true, Url:'tree?table=${this.table}'">
+				<ul id="tr" data-options="createUrl:'insert?table=${that.table}', updateUrl:'update?table=${that.table}', destroyUrl:'delete?table=${that.table}', dndUrl:'dnd?table=${that.table}', fit:true, Url:'tree?table=${that.table}'">
 				</ul>
 			</div>
 		</%block> <!--body11 end-->

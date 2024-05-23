@@ -18,8 +18,8 @@
 					var hei = $(window).height() - 120;
 					console.log('hei', hei);
 					$('#dg').datagrid({
-						//url: 'select?table=${this.table}&_log=true'
-						url: 'select?table=${this.table}&sort=id&order=desc'
+						//url: 'select?table=${that.table}&_log=true'
+						url: 'select?table=${that.table}&sort=id&order=desc'
 						, pagePosition: top
 						//,height:500
 						//,height:hei
@@ -54,7 +54,7 @@
 						<div id="mm">
 							##% for col in getattr(cfg.db1, _real_table)['desc'][:9]:
 							<div data-options="name: 'clear'">请选择字段</div> <!--不指定字段-->
-							% for col in this.table_class['desc'][:9]:
+							% for col in that.table_class['desc'][:9]:
 							<div data-options="name: '${col[0]}'">${col[0]}</div>
 							% endfor
 						</div>
@@ -62,12 +62,12 @@
 				</%block> <!--toolsearch end-->
 			</div>
 			<div style="height:100%"> <!--主表格显示区域，其中指定toolbar-->
-				<table id="dg" style="width:98%;" data-options=" rownumbers:true, singleSelect:true, autoRowHeight:true, pagination:true, nowrap:false, pageSize:10, collapsible:false, url:'select?sort=id&order=desc', maximized:false, height:'auto', pagePosition:'bottom', saveUrl:'insert?table=${this.table}', updateUrl:'update?table=${this.table}', destroyUrl:'delete?table=${this.table}', idField:'id', pageSize:10
+				<table id="dg" style="width:98%;" data-options=" rownumbers:true, singleSelect:true, autoRowHeight:true, pagination:true, nowrap:false, pageSize:10, collapsible:false, url:'select?sort=id&order=desc', maximized:false, height:'auto', pagePosition:'bottom', saveUrl:'insert?table=${that.table}', updateUrl:'update?table=${that.table}', destroyUrl:'delete?table=${that.table}', idField:'id', pageSize:10
 	,toolbar:'#toolbar', multiSort:true, remoteSort:true ">
 					<thead nowrap=false>
 						<tr style="white-space: nowrap;align:center">
 							<th id="dg_check" field="ck" checkbox="true"></th>
-							%for col in this.table_class['desc'][:11]: # 只显示前面有限个字段
+							%for col in that.table_class['desc'][:11]: # 只显示前面有限个字段
 							## 其实应该根据字段的类型来选择对应的编辑器. id不可编辑, text为textarea, 数字为对应的数字编辑, varchar为text.
 							## 至少先将if语句调整到TH的外面，便于查看
 							%if col[0]=='id' : ## 如何避免在此处写判断逻辑？
@@ -91,7 +91,7 @@
 								,{field:'name', title:'表代码'}
 								]],
 								url:'select?table=cfg_tables'
-								,queryParams: { kind:'${this.name}' }
+								,queryParams: { kind:'${that.name}' }
 								,pagination: true, mode:'remote', fitColumns:false
 								,panelHeight: 400, BBheight: 300, panelWidth:250, width: 120, delay: 100
 								, title: '目标选择'

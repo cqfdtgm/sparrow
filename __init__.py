@@ -21,15 +21,15 @@ mako.runtime.UNDEFINED = 'UNDEFINED'
 class default:
     """文档字符串，会详细描述本应用的方法接口，数据库表基本规范字段要求等"""
 
-    exposed = True  #  cherrypy需要以此表示可发布
+    exposed = True  # cherrypy需要以此表示可发布
 
     charset = 'utf8'    # 网页编码，一般全局不需要改变
 
     name = '小麻雀'   # 简洁名称，用于在左边菜单中展示，默认会为目录名称
 
-    title = '麻雀虽小，五脏俱全 - 基于cherrypy, mako,sqlite3的透明数据管理系统'   # 网页titile
+    title = '麻雀虽小，五脏俱全 - 基于cherrypy, mako,sqlite3的透明数据管理系统'   # 网页title
 
-    easyui = '/js/9_easyui' # easyui脚本URL地址
+    easyui = '/js/9_easyui'     # easyui脚本URL地址
 
     file = __file__
     
@@ -44,7 +44,7 @@ class default:
     table = 'users'
 
     setup_methods = ['_test', '_src']       # 系统方法，原样返回
-    db_type, connect_str = private.conn_pg15
+    # db_type, connect_str = private.conn_pg15
     db_type, connect_str = private.conn_sqlite_1
 
     onlines = sparrows.Session.onlines
@@ -74,6 +74,7 @@ class default:
         # self.dct['_sess'] = self.sess = sparrows.Session()
         self._sess = self.sess = sparrows.Session()
         self.table = self.kw.pop('table', self.table)
+        self.table_class = None
 
     def __iter__(self):
         print('k,kw @ __iter__', self.k, self.kw)
@@ -92,8 +93,8 @@ class default:
         elif func in self.template_methods:
             # self.dct['table_class'] = getattr(self.db, self.dct['table'])
             # print('dct:', self.dct)
-            result = getattr(self, func)(*self.k[1:], **self.kw)
-            yield TemplateLookup(self.dirs).get_template(func + '.html').render(this=self)
+            getattr(self, func)(*self.k[1:], **self.kw)
+            yield TemplateLookup(self.dirs).get_template(func + '.html').render(that=self)
         elif func in self.setup_methods:
             result = getattr(self, func)(*self.k[1:], **self.kw)
             yield from result
@@ -253,9 +254,9 @@ class default:
         self.db.update(self.table, id, **kw)
         return self.db.select(self.table, id=id)['rows'][0]
 
-
     # 返回模板内容的方法列表，目录下有同名的html文件
     template_methods = ['default', 'login', 'log', 'users', 'debug', 'edit']
+
     def debug(self, *k, **kw):
         pass
 

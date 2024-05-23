@@ -7,7 +7,7 @@
 <script type="text/javascript">
     $(function(){
         $('#tr').tree({
-            url: "tree?table=${this.table}" ,method: "get" ,checkbox:false ,lines:true
+            url: "tree?table=${that.table}" ,method: "get" ,checkbox:false ,lines:true
             ,dnd:false	//拖动太容易出错了，特别是在手机上。
             //  前端想禁止追加或拖动后突破下级数量限制，脚本过于复杂，统一通过后端判断后端返回值来处理。
             ,formatter: function(node) {
