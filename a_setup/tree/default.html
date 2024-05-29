@@ -4,7 +4,7 @@
 ## ${parent.body()}
 
 <%block name="js_onload">
-<script type="text/javascript" src="tree.js"></script>
+<script type="text/javascript" src="tree_pager.js"></script>
 <script type="text/javascript">
     $(function(){
         $('#tr').tree({
@@ -14,27 +14,9 @@
             ,formatter: function(node) {
                 return node.id + ': ' +  node.text + ' ' + node.state + ' ' + node.display;
             }
-            ,loadFilter: treeFilter
-            ,onSelect: treeSelect
-            /*,onSelect: function(node) {
-                if ('children' in node && 'total' in node && node.total>node.children.length) {
-                    $('#pp').remove();
-                    tree = this;
-                    pp = $('<span id="pp" style="position:relative;top:-6px;right:0px;float:right;display:inline-block"></span>').appendTo(node.target);
-                    pp.pagination({layout:['prev', 'links', 'next'], displayMsg:'', total:node.total
-                        ,pageSize:node.pagesize, pageNumber: node.pageNumber
-                        ,onSelectPage: function(pageNumber, pageSize) {
-                            opts = $(tree).tree('options');
-                            opts['queryParams']['page'] = pageNumber;
-                            $(tree).tree('reload', node.target);
-                            opts['queryParams']['page'] = undefined;
-                            node.pageNumber = pageNumber;
-                        }
-                    });
-                }
-			},
-            */,
-			onExpand: function(node) {
+            ,loadFilter: $.fn.etree.methods.pageFilter
+            ,onSelect: $.fn.etree.methods.pageSelect
+            ,onExpand: function(node) { // 展开时选中该记录，以便激发显示翻页控件
 			    $(this).tree('select', node.target);
 			}
         });
