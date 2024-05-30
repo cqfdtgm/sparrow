@@ -219,13 +219,15 @@ class default:
 
         rows, page = int(rows), int(page)
         kw_l = dict(parentid=id, rows=rows, page=page)
+        # kw_l.pop('parentid')
         kw_l['order'] = 'asc'
         kw_l['sort'] = 'display'
         if 'new_ids' in kw:
             kw['id'] = kw['new_ids']    # 限定只在ids集合中取结果
         # ids = kw.get('ids', [])
         recs = self.select(**kw_l)
-        if int(recs['total']) > rows:
+        return recs # 对tree，始终返回字典格式，包含total,rows，前端能够正常解析。但treegrid的二级展开只能解析rows列表格式，处理思路有二：一是在后台转换为rows，二是通过loadFilter转换，并记录节点信息，以便决定是否显示翻页控件
+        if int(recs.get('total',0)) > rows:
             return recs
         else:
             return recs['rows']

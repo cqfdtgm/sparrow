@@ -63,7 +63,7 @@
 			</div>
 			<div style="height:100%"> <!--主表格显示区域，其中指定toolbar-->
 				<table id="dg" style="width:98%;" data-options=" rownumbers:true, singleSelect:true, autoRowHeight:true, pagination:true, nowrap:false, pageSize:10, collapsible:false, url:'select?sort=id&order=desc', maximized:false, height:'auto', pagePosition:'bottom', saveUrl:'insert?table=${that.table}', updateUrl:'update?table=${that.table}', destroyUrl:'delete?table=${that.table}', idField:'id', pageSize:10
-	,toolbar:'#toolbar', multiSort:true, remoteSort:true ">
+	,toolbar:'#toolbar', multiSort:false, remoteSort:true ">
 					<thead nowrap=false>
 						<tr style="white-space: nowrap;align:center">
 							<th id="dg_check" field="ck" checkbox="true"></th>
@@ -71,16 +71,16 @@
 							## 其实应该根据字段的类型来选择对应的编辑器. id不可编辑, text为textarea, 数字为对应的数字编辑, varchar为text.
 							## 至少先将if语句调整到TH的外面，便于查看
 							%if col[0]=='id' : ## 如何避免在此处写判断逻辑？
-							<th field="${col[0]}" style="white-space: nowrap;width:auto" sortable="true">${col[0]}</th>
+							<th field="${col[0]}" style="white-space: nowrap;width:auto" sortable="false">${col[0]}</th>
 							%elif col[1]==1043: ## varchar
 							<th field="${col[0]}" style="white-space: nowrap;width:auto" editor="text"
-								formatter="esc_str" width="100" sortable="true">${col[0]}</th>
+								formatter="esc_str" width="100" sortable="false">${col[0]}</th>
 							%elif col[1]==25: ## text
 							<th field="${col[0]}" style="white-space: nowrap;width:auto" editor="textarea"
-								formatter="esc_str" width="100" sortable="true">${col[0]}</th>
+								formatter="esc_str" width="100" sortable="false">${col[0]}</th>
 							%elif col[1]==23: ## int
 							<th field="${col[0]}" style="white-space: nowrap;width:auto" editor="numberbox" width="100"
-								sortable="true">${col[0]}</th>
+								sortable="false">${col[0]}</th>
 							## 如何自定义高级编辑器？
 							<%doc>width="100" data-options="editor: {
 								type:'combogrid',
@@ -99,7 +99,7 @@
 							</%doc>
 							%else:
 							<th field="${col[0]}" style="white-space: nowrap;width:auto" editor="text" width="100"
-								sortable="true" ${col[1]}>${col[0]}</th>
+								sortable="false" ${col[1]}>${col[0]}</th>
 							%endif
 							% endfor
 						</tr>

@@ -52,55 +52,6 @@
 				    return false;
 				}
 				opts.onBeforeDrop.call(target, targetNode, source, point);
-			},
-            loadFilter: function(data) {
-                console.log('load in etree', data);
-                if (data.d) {
-                    return data.d;
-                } else if (data.total) {
-                    parentNode = $(this).tree('find', data.rows[0].parentid);
-                    if (parentNode) {
-                        parentNode.total = data.total;
-                        parentNode.pagesize = data.pagesize;
-                    } else {
-                        tree = this;
-                        $('#pp0').remove();
-                        $('<div id="pp0"></div>').insertBefore($(this));
-                        $('#pp0').css({visibility:"visible"}).pagination({
-                            total:data.total, pageSize: data.pagesize, pageNumber: data.pagenumber
-                            ,layout: ['prev', 'links', 'next'], displayMsg:''
-                            ,onSelectPage: function(pageNumber, pageSize) {
-                                opts = $(tree).etree('options');
-                                opts['queryParams']['page'] = pageNumber;
-                                $(tree).tree('reload');
-                                opts['queryParams']['page'] = undefined;
-                            }
-                        });
-                    }
-                    return data.rows;
-                } else {
-                    return data;
-                }
-            },
-            onSelect: function(node) {
-                if ('children' in node && 'total' in node && node.total>node.children.length) {
-                    $('#pp').remove();
-                    tree = this;
-                    pp = $('<span id="pp" style="position:relative;top:-6px;right:0px;float:right;display:inline-block"></span>').appendTo(node.target);
-                    pp.pagination({layout:['prev', 'links', 'next'], displayMsg:'', total:node.total
-                        ,pageSize:node.pagesize, pageNumber: node.pageNumber
-                        ,onSelectPage: function(pageNumber, pageSize) {
-                            opts = $(tree).etree('options');
-                            opts['queryParams']['page'] = pageNumber;
-                            $(tree).etree('reload', node.target);
-                            opts['queryParams']['page'] = undefined;
-                            node.pageNumber = pageNumber;
-                        }
-                    });
-                }
-			},
-			onExpand: function(node) {
-			    $(this).tree('select', node.target);
 			}
 		}));
 	}

@@ -1,38 +1,59 @@
 ﻿## 0_setup/index.html
 <%inherit file="base_table.html" />
 
-<%block name="js">
+<%block name="js_onload">
 <!-- block js @ 0_setup\treegrid\default.html -->
 <script type="text/javascript">
    $(function(){
 	$('#dg').treegrid({
-	    url:'select?_table=${this.table}' ,lines:true
+	    url:'tree?_table=${that.table}' ,lines:true
 	    //,columns: columns
-	    ,idField: 'id' ,treeField: 'id'
+	    ,idField: 'id' ,treeField: 'text'
+		, loadFilter: function(data) {
+			console.log(data);
+			//	这儿有个BUG，在treegrid中，若已经进行过展开，则翻页时会带上id=?参数。暂时通过删除之解决。下级翻页时，不知怎么办？
+			opt = $(this).treegrid('options');
+			console.log('opt', opt);
+			qs = opt.queryParams;
+			//delete qs['id'];
+			if (data.rows && data.rows[0].parentid>0) {
+				console.log('id0:', data.rows[0]);
+				console.log('id0:', data.rows[0].parentid);
+				return data.rows;
+				console.log('return rows');
+			} else {
+				return data;
+			}
+		}
 	    , onDblClickRow: function(row) {
-		console.log('moreBook start..', row);
-		moreBook(row); }
+			console.log('moreBook start..', row);
+			//moreBook(row); 
+		}
 	    , onCollapse: function(row) {
-		console.log('onCollapse, row.state: ', row.state);
-		//console.log('onCollapse ', this, row, row.id);
-		//console.log('children: ', chil);
-		coll_del(row);
-		//$.each(chil, function(i,v) {
-		//chil = $(this).treegrid('getChildren',row.id);
-		    //console.log('each ', this, i, v.id);
-		//    $('#dg').treegrid('remove', v.id);
-		//    });
-		//console.log('row.state: ', row.state);
-		// 折叠时删除下级记录，以便重新打开时，向服务器刷新数据
-		//$('#dg').treegrid('refresh', row.id);
+			console.log('onCollapse, row.state: ', row.state);
+			//console.log('onCollapse ', this, row, row.id);
+			//console.log('children: ', chil);
+			//coll_del(row);
+			//$.each(chil, function(i,v) {
+			//chil = $(this).treegrid('getChildren',row.id);
+				//console.log('each ', this, i, v.id);
+			//    $('#dg').treegrid('remove', v.id);
+			//    });
+			//console.log('row.state: ', row.state);
+			// 折叠时删除下级记录，以便重新打开时，向服务器刷新数据
+			//$('#dg').treegrid('refresh', row.id);
 		}
 	    , onExpand: function(row) {
-		console.log('展开时选择', row.id, row);
-		$('#dg').treegrid('select', row.id);
+			console.log('展开时选择', row.id, row);
+			$('#dg').treegrid('select', row.id);
+			//	展开时会污染全表的queryParams空间：id，为全表正确翻页，需要删除
+			opt = $(this).treegrid('options');
+			console.log('row:', row);
+			console.log('opt:', opt, opt.queryParams, opt.queryParams.id);
+			delete opt.queryParams.id;
 	    }
 	    ,onLoadSuccess: function () {	// 装载完毕后，缩减翻页栏，视情形隐藏翻页栏
 		count = $(this).datagrid('getData').total;
-
 		pager = $(this).datagrid('getPager');
 		pager.pagination({layout: ['list','prev','next','refresh','manual'], displayMsg:'{total}记录'});
 		if (pager) {
@@ -248,4 +269,3 @@ ${parent.js_func()}
     }
 </script>
 </%block>
-

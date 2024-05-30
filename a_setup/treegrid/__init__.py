@@ -45,33 +45,21 @@ class default(parent):
         # self.dct['table_kind'] = name
         # self.dct['table_class'] = getattr(self.db, self.dct['_table'])
 
-    def select(self, *k, **kw):
+    def tree(self, *k, **kw):
         """自定义Get, 为了处理q参数
              test tset """
 
         # 如果kw里有'id', 则是以此为父id展开下级记录，否则，是以指定条件查找相应记录
-        if 'id' in kw:
-            kw['parentid'] = kw.pop('id', 0)
+        # if 'id' in kw:
+        #     kw['parentid'] = kw.pop('id', 0)
         if kw.get('parentid',0): #展下开级目录，原则上不限制数量，设计应该防止子记录过大
             kw.pop('page',0)
             kw['rows'] = 100
-        result = super().select(*k, **kw)
+        result = super().tree(*k, **kw)
         """
-        if not kw['parentid']: # 是根记录，展开一层
-            #for r in result['rows']:
-            #    r.pop('state', 0)
-            kw2 = kw.copy()
-            kw2.pop('page', 0)
-            kw2['rows'] = -1
-            kw2['parentid'] = [r['id'] for r in result2['rows']]
-            result2 = super(default, self).Get(*k, **kw2)
-            result['rows'] += result2['rows']
-            print('parnet', kw2, len(result2['rows']))
-        for r in result['rows']:
-            if r['parentid']:
-                r['_parentId'] = r['parentid']
         """
-        if kw.get('parentid',0): # 上级不为0， 则是展开下级记录，只返回rows数据
+        return result
+        if kw.get('id',0): # 上级不为0， 则是展开下级记录，只返回rows数据
             return result['rows']
         else:   
             return result

@@ -14,7 +14,7 @@ ${parent.js_onload()}
 
 <%block name="toolbutton">
     <div style="display:inline-block;position:relative;top:0px">
-    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="javascript:$('#tr').etree('create')"></a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="javascript:$('#tr').etree('create')" title="追加一笔新记录，双击可修改"></a>
     <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="javascript:$('#tr').etree('destroy')" title="删除目前选中行" ></a>
     <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="javascript:$('#tr').etree('edit')" title="双击亦可进入编辑模式"></a>
     <a href="#" class="easyui-linkbutton" iconCls="icon-save" plain="true" onclick="javascript:$('#tr').etree('endEdit')" title="回车亦可进行保存"></a>
