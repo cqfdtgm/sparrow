@@ -6,6 +6,7 @@
 //  20240528: 第一次写jeasyui插件成功！！就是一个如何操作js全局命名空间的问题。
 
 (function ($) {
+    //var editingId = undefined;  //  同时只能编辑一条记录，临时存放在本变量中
     $.fn.treegrid.methods = $.extend({}, $.fn.treegrid.methods, {
         pageFilter: function (data) {
             //  为树形数据增加一个翻页控件，通过在装入数据时进行判断后，增加一个div实现。
@@ -37,7 +38,7 @@
                 return data;
             }
         }
-        ,pageSelect: function(node) {
+        , pageSelect: function (node) {
             //  当tree中展开下级数据时，增加显示翻页控件。
             //  使用方式：在tree/etree的load中，指定：onExpand=$.fn.etree.methods.pageSelect。同时在其onExpand中，调用select。
             if ('children' in node && 'total' in node && node.total > node.children.length) {
@@ -55,6 +56,25 @@
                         node.pageNumber = pageNumber;
                     }
                 });
+            }
+        }
+        , edit: function (dg) { // 编辑选中节点
+            if (editingId) {
+                //如果当前有一笔记录正处在编辑状态，先提交或者取消之
+                dg.treegrid('cancelEdit', editingId);
+            }
+            editingId = undefined;
+            var row = dg.treegrid('getSelected');
+            console.log('row:', row);
+            if (row) {
+                editingId = row.id;
+                dg.treegrid('beginEdit', row.id);
+            }
+        }
+        , cancel: function (dg) { // 取消编辑
+            if (editingId != undefined) {
+                $('#dg').treegrid('cancelEdit', editingId);
+                editingId = undefined;
             }
         }
     });
