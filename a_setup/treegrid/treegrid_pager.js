@@ -59,22 +59,80 @@
             }
         }
         , edit: function (dg) { // 编辑选中节点
-            if (editingId) {
-                //如果当前有一笔记录正处在编辑状态，先提交或者取消之
-                dg.treegrid('cancelEdit', editingId);
-            }
-            editingId = undefined;
             var row = dg.treegrid('getSelected');
             console.log('row:', row);
-            if (row) {
-                editingId = row.id;
-                dg.treegrid('beginEdit', row.id);
+            if (row==null) {
+                console.log('请选选中记录，或者直接在上面双击');
+                return;
             }
+            if(row.id==editingId) {  // 正在编辑
+                console.log('正在编辑不用双击', row.id, editingId);
+                return;
+            } 
+            //如果当前有一笔记录正处在编辑状态，先提交或者取消之
+            if(editingId) { // 已经有一行正处于编辑状态，先选中并提交之
+                nid = row.id;   // 保存新点击或双击的记录ID
+                dg.treegrid('select', editingId);
+                dg.treegrid('update');
+                dg.treegrid('select', nid);
+            }
+            dg.treegrid('beginEdit', row.id);
+            editingId = row.id;
+            //  在进入编辑状态后，禁止翻页控件。退出编辑或保存后，恢复翻页。
+            // dg.treegrid('getPager').hide();
         }
-        , cancel: function (dg) { // 取消编辑
+        , cancel: function (dg) { // 取消编辑，主要是为了设置editingId
             if (editingId != undefined) {
-                $('#dg').treegrid('cancelEdit', editingId);
+                dg.treegrid('cancelEdit', editingId);
                 editingId = undefined;
+            }
+            // dg.treegrid('getPager').show();
+        }
+        ,update: function(dg) {
+            if (editingId==undefined) {
+                return; // 没有选中记录在编辑状态，直接退出，可弹出提示。
+            }
+            var old_node = dg.treegrid('getSelected');
+            var {...old_node} = old_node;   // 此种方式可以达到浅层复制。
+            console.log('old_node:', old_node);
+            dg.treegrid('endEdit', editingId);  //坑！在结束修改后，即使以前取得的node，其内容也会变为编辑结束后的内容。需要进行复制。
+            editingId = undefined;
+            var opts = dg.treegrid('options');
+            var node = dg.treegrid('getSelected');
+            if (node) {
+                /*  这些信息不能在这儿删除，否则会影响页面显示，只能在后台删
+                delete node._parentId;  // 下级展开的节点，会多出这一个字段，删之
+                delete node.children;   // 删除下级信息
+                */
+                var {...new_node} = node;
+                delete new_node._parentId;
+                delete new_node.children;
+                delete new_node.state;
+                delete new_node.parentid;
+                console.log('node:', node);
+                console.log('old_node:', old_node);
+                //node.haha = 'error';
+                $.ajax({
+                    url: opts.updateUrl,
+                    type: "post",
+                    dataType: "json",
+                    data: new_node,
+                    success: function(data) {
+                        console.log('data return:', data);
+                        dg.datagrid('updateRow', {index:new_node.id, row:data})
+                    }
+                }).error(function(jqXHR) {  // 出错时回滚数据？
+                    console.log('error:', jqXHR);
+                    //dg.treegrid('update', {row:old_node});  //这句为什么不能正常执行，搞不懂。
+                    //dg.treegrid('update', {id:node.id, row:old_node});  //这句为什么不能正常执行，搞不懂。
+                    //dg.treegrid('reload');    // 目前只有全表刷新可用，但将会回到未打开所有折叠的状态。
+                    //dg.treegrid('reload', node.id);
+                    //dg.treegrid('reload', node.id, old_node);
+                    //dg.treegrid('reload', old_node);
+                    dg.datagrid('updateRow',{index:node.id, row:old_node});   //这句可以正常回滚
+                    //return false;
+                });
+                // dg.treegrid('getPager').show();
             }
         }
     });

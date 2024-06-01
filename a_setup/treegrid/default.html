@@ -56,7 +56,28 @@
 				, onLoadSuccess: function () {	// 装载完毕后，缩减翻页栏，视情形隐藏翻页栏
 					count = $(this).datagrid('getData').total;
 					pager = $(this).datagrid('getPager');
-					pager.pagination({ layout: ['list', 'prev', 'next', 'refresh', 'manual'], displayMsg: '{total}记录' });
+					dg = $(this);
+					opt = pager.pagination('options');
+					pager.pagination({ layout: ['list', 'prev', 'next', 'refresh', 'manual'], displayMsg: '{total}记录',onSelectPage: function(page, size){
+						dg.treegrid('cancel');	// 翻页前先取消编辑
+						dg.treegrid({pageNumber:page});		// 只有这种方式可以翻页						
+						/*	这种参照tree的方式也不能翻页
+						opt = dg.treegrid('options').queryParams;
+						opt.page = page;
+						opt.size = 3;
+						console.log('opt',opt,  dg.treegrid('options').queryParams);
+						dg.datagrid('reload');
+						*/
+						//$.fn.pagination.methods.select(pager, page);
+						//pager.pagination('select', page);
+						//dg.treegrid({page:page, rows:size});		// 为什么这里翻不了页？如何调用select正常翻页？
+						// pageSize, rows都无法传size过去。
+						//dg.treegrid('load', {pageNumber:page, rows:size});		// 为什么这里翻不了页？如何调用select正常翻页？
+						//pager.pagination('refresh');
+						//$.call(opt.onSelectPage,page);
+						//$.fn.pagination.methods.select(pager, page);
+					}
+				 });
 					if (pager) {
 						if (pager.pagination('options').total < 11) {	// 如果不超过10条，则隐藏翻页栏
 							pager.hide();
