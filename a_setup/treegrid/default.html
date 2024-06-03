@@ -5,6 +5,7 @@
 	<script type="text/javascript" src="treegrid_pager.js"></script>
 	<script type="text/javascript">
 		window.editingId = undefined;		// 要使用此种方式，才能真正定义全局可以使用的变量
+		window.editingRow = {};		// 要使用此种方式，才能真正定义全局可以使用的变量
 		$(function () {
 			$('#dg').treegrid({
 				url: 'tree?_table=${that.table}', lines: true
@@ -43,6 +44,12 @@
 					//console.log('row.state: ', row.state);
 					// 折叠时删除下级记录，以便重新打开时，向服务器刷新数据
 					//$('#dg').treegrid('refresh', row.id);
+				}
+				, onBeforeExpand: function(row) {	// 展开前先要将queryParams中的page去掉，展开后恢复，可能这些要在后台处理更为方便一点，通过更改翻页命名
+					opt = $(this).treegrid('options');
+					page = opt.queryParams.pageNumber;
+					//delete opt.queryParams.pageNumber;
+					//delete opt.queryParams.page;
 				}
 				, onExpand: function (row) {
 					console.log('展开时选择', row.id, row);

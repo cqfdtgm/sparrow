@@ -52,7 +52,7 @@ class default(parent):
         # 如果kw里有'id', 则是以此为父id展开下级记录，否则，是以指定条件查找相应记录
         # if 'id' in kw:
         #     kw['parentid'] = kw.pop('id', 0)
-        if kw.get('parentid',0): #展下开级目录，原则上不限制数量，设计应该防止子记录过大
+        if kw.get('id',0): #展下开级目录，原则上不限制数量，设计应该防止子记录过大
             kw.pop('page',0)
             kw['rows'] = 100
         result = super().tree(*k, **kw)
@@ -69,14 +69,15 @@ class default(parent):
 
         # kw['name'] = self.sess.get('user','')
         # kw['stime'] = tools._now()
-        if kw.get('parentid',0):   # 是回复
+        parentid = int(kw.get('parentid', 0))
+        if parentid:   # 是回复
             parent = self.update(id=kw['parentid'], state='closed')
             # 同时要根据上级记录，更新level和path
             if 'level' in parent:
                 kw['level'] = parent['level'] + 1
             if 'path' in parent:
                 kw['path'] = '%s.%s' % (parent['path'],parent['id'])
-        return super().insert(*k, **kw)
+        return [super().insert(*k, **kw)]
 
 
 __import__(__name__, {}, {}, [x.split('.')[0] for x in os.listdir(__name__.replace('.', os.sep))])

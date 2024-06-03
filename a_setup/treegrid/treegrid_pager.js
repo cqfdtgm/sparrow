@@ -38,7 +38,7 @@
                 return data;
             }
         }
-        , pageSelect: function (node) {
+        ,pageSelect: function (node) {
             //  当tree中展开下级数据时，增加显示翻页控件。
             //  使用方式：在tree/etree的load中，指定：onExpand=$.fn.etree.methods.pageSelect。同时在其onExpand中，调用select。
             if ('children' in node && 'total' in node && node.total > node.children.length) {
@@ -58,7 +58,60 @@
                 });
             }
         }
-        , edit: function (dg) { // 编辑选中节点
+        ,cancel: function (dg) { // 取消编辑，主要是为了设置editingId
+            if (editingId != undefined) {
+                dg.treegrid('cancelEdit', editingId);
+                //dg.treegrid('update', {id:editingId, row:editingRow});
+                console.log('cancel oldRow:', editingRow);
+                dg.datagrid('updateRow', {index:editingId, row:editingRow})
+            }
+            editingId = undefined;
+            editingRow = undefined;
+            // dg.treegrid('getPager').show();
+        }
+        ,createData: function(dg) { //创建下级节点
+            node = dg.treegrid('getSelected');
+            id = node==null? 0: node.id;
+            var opts = dg.treegrid('options');
+            $.ajax({
+                url: opts.saveUrl,
+                type: "post",
+                dataType: "json",
+                data: {parentid:id, state:'open'},
+                success: function(data) {
+                    console.log('create return:', data);
+                    if(node!=null) {
+                        dg.treegrid('append', {parent:node.id, data:data})
+                    } else {    // 没有选中记录，则追加在最后一笔的后面
+                        dg.treegrid('append', {data:data});
+                    }
+                }
+            }).error(function(jqXHR) {  // 出错时回滚数据？
+                console.log('error:', jqXHR);
+            })
+        }
+        ,deleteData: function(dg) { // 删除选中记录
+            dg.treegrid('cancel');  // 退出编辑。
+            node = dg.treegrid('getSelected');
+            if (node==null) {
+                console.log('请先选中记录');
+                return
+            }
+            var opts = dg.treegrid('options');
+            $.ajax({
+                url: opts.destroyUrl,
+                type: "post",
+                dataType: "json",
+                data: {id:node.id},
+                success: function(data) {
+                    console.log('delete return:', data);
+                    dg.treegrid('remove', node.id)
+                }
+            }).error(function(jqXHR) {  // 出错时回滚数据？
+                console.log('error:', jqXHR);
+            })
+        }
+        ,edit: function (dg) { // 编辑选中节点
             var row = dg.treegrid('getSelected');
             console.log('row:', row);
             if (row==null) {
@@ -73,22 +126,17 @@
             if(editingId) { // 已经有一行正处于编辑状态，先选中并提交之
                 nid = row.id;   // 保存新点击或双击的记录ID
                 dg.treegrid('select', editingId);
-                dg.treegrid('update');
+                dg.treegrid('updateData');
                 dg.treegrid('select', nid);
             }
-            dg.treegrid('beginEdit', row.id);
             editingId = row.id;
+            var {...oldRow} = row;
+            editingRow = oldRow;
+            dg.treegrid('beginEdit', row.id);
             //  在进入编辑状态后，禁止翻页控件。退出编辑或保存后，恢复翻页。
             // dg.treegrid('getPager').hide();
         }
-        , cancel: function (dg) { // 取消编辑，主要是为了设置editingId
-            if (editingId != undefined) {
-                dg.treegrid('cancelEdit', editingId);
-                editingId = undefined;
-            }
-            // dg.treegrid('getPager').show();
-        }
-        ,update: function(dg) {
+        ,updateData: function(dg) {
             if (editingId==undefined) {
                 return; // 没有选中记录在编辑状态，直接退出，可弹出提示。
             }

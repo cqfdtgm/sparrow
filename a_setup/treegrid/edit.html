@@ -10,7 +10,7 @@
                 onDblClickRow: function (index, row) {
                     $(this).treegrid('edit');
                 }
-                , onClickRow: function (index, row) {
+                , onSelect: function (index, row) {
                     console.log('clickRow', index, row, this);
                     if (index.id==editingId) { // 正在编辑
                         console.log('正在编辑', index.id, editingId);
@@ -28,10 +28,10 @@
 
 <%block name="toolbutton">
     ##<a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="javascript:moreBook()">显示全部</a>
-    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="javascript:$('#tr').etree('create')">追加</a>
-    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="javascript:newBook()">增加</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-add" plain="true" onclick="javascript:$('#dg').treegrid('createData')">增加</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-remove" plain="true" onclick="javascript:$('#dg').treegrid('deleteData')">删除</a>
     <a href="#" class="easyui-linkbutton" iconCls="icon-edit" plain="true" onclick="javascript:$('#dg').treegrid('edit')">修改</a>
-    <a href="#" class="easyui-linkbutton" iconCls="icon-save" plain="true" onclick="javascript:$('#dg').treegrid('update')">保存</a>
+    <a href="#" class="easyui-linkbutton" iconCls="icon-save" plain="true" onclick="javascript:$('#dg').treegrid('updateData')">保存</a>
     <a href="#" class="easyui-linkbutton" iconCls="icon-cancel" plain="true" onclick="javascript:$('#dg').treegrid('cancel')">取消</a>
     <a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false" data-options="disabled:true">导入</a>
     <a href="#" class="easyui-linkbutton" iconCls="icon-undo" plain="true" onclick="javascript:$('#dg').edatagrid('cancelRow');return false" data-options="disabled:true">导出</a>
