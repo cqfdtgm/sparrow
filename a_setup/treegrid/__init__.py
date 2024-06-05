@@ -52,9 +52,9 @@ class default(parent):
         # 如果kw里有'id', 则是以此为父id展开下级记录，否则，是以指定条件查找相应记录
         # if 'id' in kw:
         #     kw['parentid'] = kw.pop('id', 0)
-        if kw.get('id',0): #展下开级目录，原则上不限制数量，设计应该防止子记录过大
-            kw.pop('page',0)
-            kw['rows'] = 100
+        if 'id' in kw:   # kw.get('id',0): #展下开级目录，原则上不限制数量，设计应该防止子记录过大
+            kw['page'] = kw.pop('pagenumber',0)
+            # kw['rows'] = 100
         result = super().tree(*k, **kw)
         """
         """

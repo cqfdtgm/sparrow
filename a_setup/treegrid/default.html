@@ -8,10 +8,11 @@
 		window.editingRow = {};		// 要使用此种方式，才能真正定义全局可以使用的变量
 		$(function () {
 			$('#dg').treegrid({
-				url: 'tree?_table=${that.table}', lines: true
+				url: 'tree?table=${that.table}', lines: true
 				//,columns: columns
 				, idField: 'id', treeField: 'text'
-				, loadFilter: function (data) {
+				, loadFilter: $.fn.treegrid.methods.pageFilter
+				, loadFilterBB: function (data) {
 					console.log(data);
 					//	这儿有个BUG，在treegrid中，若已经进行过展开，则翻页时会带上id=?参数。暂时通过删除之解决。下级翻页时，不知怎么办？
 					opt = $(this).treegrid('options');
@@ -31,6 +32,12 @@
 				//	console.log('moreBook start..', row);
 				//moreBook(row); 
 				//}
+				, onBeforeCollapse: function (node) {
+					if ('children' in node && 'total' in node && node.total > node.children.length) {
+						$('#pp-pager').remove();
+						$('#pp-number').remove();
+					}
+				}
 				, onCollapse: function (row) {
 					console.log('onCollapse, row.state: ', row.state);
 					//console.log('onCollapse ', this, row, row.id);
@@ -45,7 +52,7 @@
 					// 折叠时删除下级记录，以便重新打开时，向服务器刷新数据
 					//$('#dg').treegrid('refresh', row.id);
 				}
-				, onBeforeExpand: function(row) {	// 展开前先要将queryParams中的page去掉，展开后恢复，可能这些要在后台处理更为方便一点，通过更改翻页命名
+				, onBeforeExpand: function (row) {	// 展开前先要将queryParams中的page去掉，展开后恢复，可能这些要在后台处理更为方便一点，通过更改翻页命名
 					opt = $(this).treegrid('options');
 					page = opt.queryParams.pageNumber;
 					//delete opt.queryParams.pageNumber;
@@ -60,38 +67,39 @@
 					console.log('opt:', opt, opt.queryParams, opt.queryParams.id);
 					delete opt.queryParams.id;
 				}
-				, onLoadSuccess: function () {	// 装载完毕后，缩减翻页栏，视情形隐藏翻页栏
+				, onLoadSuccessBB: function () {	// 装载完毕后，缩减翻页栏，视情形隐藏翻页栏
 					count = $(this).datagrid('getData').total;
 					pager = $(this).datagrid('getPager');
 					dg = $(this);
 					opt = pager.pagination('options');
-					pager.pagination({ layout: ['list', 'prev', 'next', 'refresh', 'manual'], displayMsg: '{total}记录',onSelectPage: function(page, size){
-						dg.treegrid('cancel');	// 翻页前先取消编辑
-						dg.treegrid({pageNumber:page});		// 只有这种方式可以翻页						
-						/*	这种参照tree的方式也不能翻页
-						opt = dg.treegrid('options').queryParams;
-						opt.page = page;
-						opt.size = 3;
-						console.log('opt',opt,  dg.treegrid('options').queryParams);
-						dg.datagrid('reload');
-						*/
-						//$.fn.pagination.methods.select(pager, page);
-						//pager.pagination('select', page);
-						//dg.treegrid({page:page, rows:size});		// 为什么这里翻不了页？如何调用select正常翻页？
-						// pageSize, rows都无法传size过去。
-						//dg.treegrid('load', {pageNumber:page, rows:size});		// 为什么这里翻不了页？如何调用select正常翻页？
-						//pager.pagination('refresh');
-						//$.call(opt.onSelectPage,page);
-						//$.fn.pagination.methods.select(pager, page);
-					}
-				 });
+					pager.pagination({
+						layout: ['list', 'prev', 'next', 'refresh', 'manual'], displayMsg: '{total}记录', onSelectPage: function (page, size) {
+							dg.treegrid('cancel');	// 翻页前先取消编辑
+							dg.treegrid({ pageNumber: page });		// 只有这种方式可以翻页						
+							/*	这种参照tree的方式也不能翻页
+							opt = dg.treegrid('options').queryParams;
+							opt.page = page;
+							opt.size = 3;
+							console.log('opt',opt,  dg.treegrid('options').queryParams);
+							dg.datagrid('reload');
+							*/
+							//$.fn.pagination.methods.select(pager, page);
+							//pager.pagination('select', page);
+							//dg.treegrid({page:page, rows:size});		// 为什么这里翻不了页？如何调用select正常翻页？
+							// pageSize, rows都无法传size过去。
+							//dg.treegrid('load', {pageNumber:page, rows:size});		// 为什么这里翻不了页？如何调用select正常翻页？
+							//pager.pagination('refresh');
+							//$.call(opt.onSelectPage,page);
+							//$.fn.pagination.methods.select(pager, page);
+						}
+					});
 					if (pager) {
 						if (pager.pagination('options').total < 11) {	// 如果不超过10条，则隐藏翻页栏
 							pager.hide();
 						}
 					}
 				}
-
+				, onSelect: $.fn.treegrid.methods.pageSelect
 			});
 		});
 	</script>

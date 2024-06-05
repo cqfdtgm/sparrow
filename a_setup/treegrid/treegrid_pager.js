@@ -7,17 +7,20 @@
 
 (function ($) {
     //var editingId = undefined;  //  同时只能编辑一条记录，临时存放在本变量中
+    //window.tg = undefined;  // 要先在这儿定义后，才能当作全局变量来使用。
     $.fn.treegrid.methods = $.extend({}, $.fn.treegrid.methods, {
         pageFilter: function (data) {
             //  为树形数据增加一个翻页控件，通过在装入数据时进行判断后，增加一个div实现。
             //  先使用自定义函数的方式实现和测试，然后参照easyui，写进$.fn名字空间以方便引用
             //  使用方式：在tree/etree的load中，指定：loadFilter=$.fn.etree.methods.pageFilter。
             if (data.total) {    // 如果返回的是select形式，表明需要翻页
-                parentNode = $(this).tree('find', data.rows[0].parentid);
+                parentNode = $(this).treegrid('find', data.rows[0].parentid);
                 if (parentNode) {
                     parentNode.total = data.total;
                     parentNode.pagesize = data.pagesize;
+                    return data.rows;
                 } else {    // 是顶层目录，如果记录数超过一页数量,显示翻页插件
+                    return data;
                     tree = this;
                     $('#pp0').remove();
                     $('<div id="pp0"></div>').insertBefore($(this));
@@ -38,22 +41,62 @@
                 return data;
             }
         }
-        ,pageSelect: function (node) {
-            //  当tree中展开下级数据时，增加显示翻页控件。
-            //  使用方式：在tree/etree的load中，指定：onExpand=$.fn.etree.methods.pageSelect。同时在其onExpand中，调用select。
-            if ('children' in node && 'total' in node && node.total > node.children.length) {
-                $('#pp').remove();
-                tree = this;
-                pp = $('<span id="pp" style="position:relative;top:-6px;right:0px;float:right;display:inline-block"></span>').appendTo(node.target);
-                pp.pagination({
+        ,pageSelect: function (node, row) {
+            //  当treegrid中展开下级数据时，增加显示翻页控件。
+            //  使用方式：在treegrid的load中，指定：onExpand=$.fn.treegrid.methods.pageTreegrid。同时在其onExpand中，调用select。
+            console.log('pageTreegrid node', node, node.total, node.children);
+            console.log('pageTreegrid row', row, this);
+            tg = this;
+            if ('total' in node && node.total > node.pagesize) {
+                console.log('开始翻页', node, node.target);
+                console.log('开始翻页2', node.total, node.pagesize, node.total>node.pagesize);
+                tr = $('.datagrid-row').filter('[node-id="'+node.id+'"]');
+                console.log('tr:', tr);
+                console.log("this in pageSelect:", this);
+                $('#pp-pager').remove();
+                $('#pp-number').remove();
+                window.tg = $(this);
+                //pp = $('<tr><td></td><td colspan="8"><span id="pp" style="position:relative;top:-6px;right:0px;float:right;display:inline-block"></span></td></tr>').insertAfter(tr[1]);
+                //pp = $('<tr><td></td><td colspan="8"><span>pager</span></td></tr>').insertAfter(tr[1]);
+                pp = $('<tr id="pp-pager" node-id="0" class="treegrid-row" style="height: 25px;"><td></td><td></td><td colspan="7"><div id="pp">pager</div></td></tr>').insertAfter(tr[1]);
+                pp_number = $('<tr id="pp-number" class="treegrid-row" style="height:25px" node-id="0"><td class="datagrid-td-rownunber"><div class="datagrid-cell-rownumber">0</div></td></tr>').insertAfter(tr[0]);
+                //$(tg).datagrid('fixRowHeight');
+                $('#pp').pagination({
                     layout: ['prev', 'links', 'next'], displayMsg: '', total: node.total
                     , pageSize: node.pagesize, pageNumber: node.pageNumber
                     , onSelectPage: function (pageNumber, pageSize) {
-                        opts = $(tree).tree('options');
+                        console.log('select:', pageNumber, pageSize, node.id)
+                        //tg = $('#dg');  // 这儿使用tg，window.tg都不好使。
+                        //tg = $.tg;  // 但可以使用$.tg传递全局参数
+                        // 原因是在edit.html中二次调用pageSelect时，需要使用call方式
+                        $(tg).treegrid('cancel');
+                        console.log('tg: and #dg: ', $('#dg'), $(window.tg), window.tg);
+                        opts = $(tg).treegrid('options');
                         opts['queryParams']['page'] = pageNumber;
-                        $(tree).tree('reload', node.target);
-                        opts['queryParams']['page'] = undefined;
+                        console.log('opts in onSelect:', opts, node.children);
+                        /*  -- 这种方式会隔行删一个，可能因为在循环中改变了循环体
+                        $.each(node.children, function(i, nd) {
+                            console.log('nd', i, nd);
+                            $(dg).treegrid('remove', nd.id);
+                        })
+                        */
+                        $('#pp-pager').remove();
+                        $('#pp-number').remove();
+                        pp.remove;
+                        pp_number.remove;
+                        $(tg).treegrid('collapse', node.id);
+                        delete node.children;
+                        $(tg).treegrid('refresh', node.id);
                         node.pageNumber = pageNumber;
+                        node.pagenumber = pageNumber;
+                        console.log('being reload:', node, pageNumber);
+                        $(tg).treegrid('load', {id:node.id, pagenumber:pageNumber});
+                        //delete node.children;
+                        //$(tg).treegrid('reload', {id:node.id,page:pageNumber, pagenumber:pagenumber});
+                        // load传不走page参数，始终会默认传1？
+                        //opts['queryParams']['page'] = undefined;
+                        opts['queryParams']['pagenumber'] = undefined;  // 子翻页参数要删掉，以免污染全表页数
+                        opts['queryParams']['id'] = undefined;  // 子翻页参数要删掉，以免污染全表页数
                     }
                 });
             }
@@ -157,6 +200,9 @@
                 delete new_node.children;
                 delete new_node.state;
                 delete new_node.parentid;
+                delete new_node.total;
+                delete new_node.page;
+                delete new_node.pagesize;
                 console.log('node:', node);
                 console.log('old_node:', old_node);
                 //node.haha = 'error';
